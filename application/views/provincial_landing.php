@@ -69,31 +69,37 @@
         padding: 0;
         position: relative;
         z-index: 1;
+        display: flex;
+        align-items: stretch;
     }
 
     .landing-card {
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+        width: 100%;
     }
 
     .landing-card-inner {
         flex: 1;
         display: flex;
         flex-direction: column;
-        max-width: 1400px;
+        max-width: 1200px;
+        /* slightly narrower for nicer line length */
         margin: 0 auto;
         width: 100%;
-        padding: 32px 32px;
+        padding: 40px 28px 32px;
+        /* more balanced top / side padding */
     }
 
     /* Header Section */
     .landing-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
         gap: 24px;
-        margin-bottom: 24px;
+        margin-bottom: 28px;
+        /* a bit more breathing room below header */
         animation: slideDown 0.6s ease-out;
     }
 
@@ -127,7 +133,7 @@
     }
 
     .landing-title h2 {
-        font-size: 2.4rem;
+        font-size: 2.35rem;
         font-weight: 900;
         color: #1e293b;
         margin-bottom: 6px;
@@ -140,6 +146,8 @@
         font-size: 0.9rem;
         line-height: 1.6;
         display: block;
+        max-width: 520px;
+        /* keep subtitle from becoming too wide */
     }
 
     /* Group Pills */
@@ -147,6 +155,7 @@
         display: flex;
         gap: 10px;
         align-items: center;
+        flex-wrap: wrap;
     }
 
     .group-pills .btn {
@@ -225,6 +234,7 @@
         justify-content: center;
         box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
         transition: all 0.2s ease;
+        white-space: nowrap;
     }
 
     .login-btn:hover {
@@ -236,7 +246,7 @@
 
 
     .summary-row {
-        margin-bottom: 20px;
+        margin-bottom: 22px;
         animation: fadeIn 0.8s ease-out 0.2s backwards;
     }
 
@@ -255,7 +265,7 @@
     .summary-card {
         background: white;
         border-radius: 16px;
-        padding: 20px;
+        padding: 18px 20px;
         border: 1px solid #e2e8f0;
         transition: all 0.25s ease;
         position: relative;
@@ -302,6 +312,10 @@
         color: #1e293b;
         margin-bottom: 6px;
         line-height: 1.1;
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        flex-wrap: wrap;
     }
 
     .summary-sub {
@@ -313,7 +327,7 @@
     /* Winners Table */
     .winners-table-wrapper {
         background: white;
-        border-radius: 20px;
+        border-radius: 18px;
         border: 2px solid #e2e8f0;
         overflow: hidden;
         flex: 1;
@@ -321,6 +335,8 @@
         flex-direction: column;
         box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06);
         animation: fadeIn 0.8s ease-out 0.4s backwards;
+        margin-top: 6px;
+        /* slight separation from summary cards */
     }
 
     .table-responsive {
@@ -347,13 +363,13 @@
         font-weight: 800;
         color: #475569;
         border-bottom: 3px solid #e2e8f0;
-        padding: 16px 14px;
+        padding: 14px 14px;
         white-space: nowrap;
         border-top: none;
     }
 
     .winners-table tbody td {
-        padding: 16px 14px;
+        padding: 14px 14px;
         border-bottom: 1px solid #f1f5f9;
         font-size: 0.95rem;
         color: #334155;
@@ -365,8 +381,9 @@
         transition: background-color 0.2s ease;
     }
 
+    /* Neutral hover on table rows */
     .winners-table tbody tr:hover {
-        background: #EEF2FF;
+        background: #F9FAFB;
     }
 
     .winners-table tbody tr:last-child td {
@@ -423,11 +440,11 @@
 
     /* Footer */
     .footer-note {
-        margin-top: 16px;
-        padding-top: 12px;
+        margin-top: 14px;
+        padding-top: 10px;
         border-top: 1px solid #e2e8f0;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
         font-size: 0.8rem;
         color: #94a3b8;
@@ -446,27 +463,36 @@
 
     @media (max-width: 991.98px) {
         .landing-card-inner {
-            padding: 24px 18px;
+            padding: 28px 18px 24px;
         }
 
         .landing-header {
             flex-direction: column;
             align-items: flex-start;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
 
         .landing-title h2 {
             font-size: 2rem;
         }
 
-        .group-pills {
+        .landing-title small {
+            max-width: 100%;
+        }
+
+        .landing-actions {
             width: 100%;
-            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .group-pills {
+            flex: 1;
         }
 
         .group-pills .btn {
             flex: 1;
             min-width: 100px;
+            text-align: center;
         }
 
         .summary-value {
@@ -475,11 +501,11 @@
 
         .winners-table thead th {
             font-size: 0.7rem;
-            padding: 14px 10px;
+            padding: 12px 10px;
         }
 
         .winners-table tbody td {
-            padding: 14px 10px;
+            padding: 12px 10px;
             font-size: 0.85rem;
         }
 
@@ -502,6 +528,17 @@
             min-width: 80px;
             padding: 8px 16px;
             font-size: 0.7rem;
+        }
+
+        .landing-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+
+        .login-btn {
+            width: 100%;
+            justify-content: center;
         }
     }
 </style>
@@ -681,7 +718,6 @@
                             <span>
                                 For questions or clarification on these results, please coordinate with the Meet Coordinator.
                             </span>
-
                         </div>
 
                     </div>
@@ -699,32 +735,6 @@
     <script src="<?= base_url(); ?>assets/js/script.js"></script>
 
     <script>
-        // Auto-refresh without full page reload
-        // You need a controller endpoint like: Provincial/live_results
-        // that returns JSON:
-        // {
-        //   "overview": {
-        //      "municipalities": 12,
-        //      "events": 34,
-        //      "gold": 10,
-        //      "silver": 12,
-        //      "bronze": 8,
-        //      "total_medals": 30,
-        //      "last_update": "2025-12-01 15:30:00"
-        //   },
-        //   "winners": [
-        //      {
-        //        "event_name": "...",
-        //        "event_group": "Elementary",
-        //        "category": "Boys",
-        //        "full_name": "Juan Dela Cruz",
-        //        "medal": "Gold",
-        //        "municipality": "Mati City"
-        //      },
-        //      ...
-        //   ]
-        // }
-
         function formatDateTime(dtString) {
             if (!dtString) return 'No data yet';
             var d = new Date(dtString.replace(' ', 'T'));
