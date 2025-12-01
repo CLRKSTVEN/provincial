@@ -1,1 +1,1 @@
-# srms-wcm-college
+# Provincial Meet Website for easy input and live viewing 
