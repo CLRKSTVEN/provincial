@@ -85,11 +85,9 @@
         display: flex;
         flex-direction: column;
         max-width: 1200px;
-        /* slightly narrower for nicer line length */
         margin: 0 auto;
         width: 100%;
         padding: 40px 28px 32px;
-        /* more balanced top / side padding */
     }
 
     /* Header Section */
@@ -99,7 +97,6 @@
         align-items: flex-start;
         gap: 24px;
         margin-bottom: 28px;
-        /* a bit more breathing room below header */
         animation: slideDown 0.6s ease-out;
     }
 
@@ -147,7 +144,6 @@
         line-height: 1.6;
         display: block;
         max-width: 520px;
-        /* keep subtitle from becoming too wide */
     }
 
     /* Group Pills */
@@ -244,7 +240,6 @@
         transform: translateY(-1px);
     }
 
-
     .summary-row {
         margin-bottom: 22px;
         animation: fadeIn 0.8s ease-out 0.2s backwards;
@@ -340,7 +335,6 @@
         box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06);
         animation: fadeIn 0.8s ease-out 0.4s backwards;
         margin-top: 6px;
-        /* slight separation from summary cards */
     }
 
     .table-responsive {
@@ -385,7 +379,6 @@
         transition: background-color 0.2s ease;
     }
 
-    /* Neutral hover on table rows */
     .winners-table tbody tr:hover {
         background: #F9FAFB;
     }
@@ -394,7 +387,6 @@
         border-bottom: none;
     }
 
-    /* No-results row: no hover animation */
     .winners-table tbody tr.no-results-row,
     .winners-table tbody tr.no-results-row:hover {
         background: white;
@@ -455,6 +447,38 @@
         font-weight: 500;
         gap: 10px;
         flex-wrap: wrap;
+    }
+
+    .municipality-picker {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+    }
+
+    .municipality-picker-label {
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .municipality-picker-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .municipality-picker select {
+        min-width: 220px;
+    }
+
+    .municipality-empty {
+        text-align: center;
+        color: #94a3b8;
+        padding: 10px 0;
     }
 
     .footer-note span {
@@ -549,7 +573,7 @@
 
 <body>
 
-    <!-- Loader (reuse your global loader) -->
+    <!-- Loader -->
     <div class="loader-wrapper">
         <div class="loader">
             <div class="loader-bar"></div>
@@ -625,7 +649,10 @@
                         ?>
                         <div class="row summary-row">
                             <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="summary-card clickable" id="municipalityCard" data-toggle="modal" data-target="#municipalityModal" data-bs-toggle="modal" data-bs-target="#municipalityModal">
+                                <div class="summary-card clickable" id="municipalityCard"
+                                    data-toggle="modal" data-target="#municipalityModal"
+                                    data-bs-toggle="modal" data-bs-target="#municipalityModal"
+                                    role="button" tabindex="0">
                                     <div class="summary-label">Participating Municipalities</div>
                                     <div class="summary-value" id="stat-municipalities"><?= $municipalities; ?></div>
                                     <div class="summary-sub">with at least one officially recorded medal</div>
@@ -662,7 +689,7 @@
                                 <?php if (!empty($activeMunicipality)): ?>
                                     <div class="alert alert-info mb-0" style="border-radius:0;">
                                         Viewing medals for <strong><?= htmlspecialchars($activeMunicipality, ENT_QUOTES, 'UTF-8'); ?></strong>.
-                                        <a href="<?= site_url('provincial' . ($active_group !== 'ALL' ? '?group=' . urlencode($active_group) : '')); ?>" class="ml-2">Clear filter</a>
+                                        <a href="<?= site_url('provincial' . ($group !== 'ALL' ? '?group=' . urlencode($group) : '')); ?>" class="ml-2">Clear filter</a>
                                     </div>
                                 <?php endif; ?>
                                 <table class="table table-sm table-hover mb-0 winners-table">
@@ -750,6 +777,29 @@
                 </div>
                 <div class="modal-body">
                     <?php if (!empty($tally)): ?>
+                        <?php
+                        $baseUrl = site_url('provincial');
+                        $groupQuery = ($group === 'Elementary' || $group === 'Secondary')
+                            ? '&group=' . urlencode($group)
+                            : '';
+                        ?>
+                        <div class="municipality-picker" id="municipalityPicker"
+                            data-base-url="<?= $baseUrl; ?>" data-group-query="<?= $groupQuery; ?>">
+                            <span class="municipality-picker-label">Jump to a municipal dashboard</span>
+                            <div class="municipality-picker-row">
+                                <select class="form-control form-control-sm" id="municipalitySelect">
+                                    <option value="">Select municipality</option>
+                                    <?php foreach ($tally as $row): ?>
+                                        <option value="<?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>">
+                                            <?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="button" class="btn btn-primary btn-sm" id="municipalityViewButton">
+                                    View dashboard
+                                </button>
+                            </div>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-sm table-hover">
                                 <thead>
@@ -763,12 +813,6 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php
-                                    $baseUrl = site_url('provincial');
-                                    $groupQuery = ($active_group === 'Elementary' || $active_group === 'Secondary')
-                                        ? '&group=' . urlencode($active_group)
-                                        : '';
-                                    ?>
                                     <?php foreach ($tally as $row): ?>
                                         <?php
                                         $mName = $row->municipality;
@@ -802,95 +846,152 @@
     </div>
 
     <!-- JS -->
-    <script src="<?= base_url(); ?>assets/js/jquery-3.5.1.min.js"></script>
-    <script src="<?= base_url(); ?>assets/js/bootstrap/bootstrap.bundle.min.js"></script>
-    <script src="<?= base_url(); ?>assets/js/icons/feather-icon/feather.min.js"></script>
-    <script src="<?= base_url(); ?>assets/js/icons/feather-icon/feather-icon.js"></script>
-    <script src="<?= base_url(); ?>assets/js/config.js"></script>
-    <script src="<?= base_url(); ?>assets/js/script.js"></script>
+    <script src="<?= base_url('assets/js/jquery-3.6.0.min.js'); ?>"></script>
+    <script>
+        window.jQuery || document.write('<script src="https://code.jquery.com/jquery-3.6.0.min.js"><\\/script>');
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        function formatDateTime(dtString) {
-            if (!dtString) return 'No data yet';
-            var d = new Date(dtString.replace(' ', 'T'));
-            if (isNaN(d.getTime())) return dtString;
-            var options = {
-                month: 'short',
-                day: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            };
-            return d.toLocaleString(undefined, options);
-        }
-
-        function renderWinnersRows(winners) {
-            if (!winners || winners.length === 0) {
-                return '<tr class="no-results-row">' +
-                    '<td colspan="6" class="text-center py-5" style="color:#94a3b8;font-size:1.1rem;">' +
-                    '🏅 No results are available yet. Please wait for the organizers to post the official list of winners.' +
-                    '</td></tr>';
+        (function($, bootstrap) {
+            if (!$) {
+                console.error('jQuery did not load; municipal modal and live updates are disabled.');
+                return;
             }
 
-            var rows = '';
-            winners.forEach(function(row) {
-                var medal = row.medal || 'Silver';
-                var chipClass = 'chip-silver';
-                if (medal === 'Gold') chipClass = 'chip-gold';
-                else if (medal === 'Bronze') chipClass = 'chip-bronze';
+            function formatDateTime(dtString) {
+                if (!dtString) return 'No data yet';
+                var d = new Date(dtString.replace(' ', 'T'));
+                if (isNaN(d.getTime())) return dtString;
+                var options = {
+                    month: 'short',
+                    day: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                return d.toLocaleString(undefined, options);
+            }
 
-                rows += '<tr>' +
-                    '<td class="align-middle">' + $('<div>').text(row.event_name || '').html() + '</td>' +
-                    '<td class="align-middle" style="white-space:nowrap;">' + $('<div>').text(row.event_group || '').html() + '</td>' +
-                    '<td class="align-middle" style="white-space:nowrap;">' + $('<div>').text(row.category || '-').html() + '</td>' +
-                    '<td class="align-middle">' + $('<div>').text(row.full_name || '').html() + '</td>' +
-                    '<td class="align-middle text-center">' +
-                    '<span class="chip-medal ' + chipClass + '">' +
-                    $('<div>').text(medal).html() +
-                    '</span>' +
-                    '</td>' +
-                    '<td class="align-middle">' + $('<div>').text(row.municipality || '').html() + '</td>' +
-                    '</tr>';
-            });
+            function openMunicipalityModal() {
+                var modalEl = document.getElementById('municipalityModal');
+                if (!modalEl) return;
 
-            return rows;
-        }
-
-        function refreshResults() {
-            $.getJSON('<?= site_url('provincial/live_results'); ?>', function(resp) {
-                if (!resp) return;
-
-                if (resp.overview) {
-                    var o = resp.overview;
-                    $('#stat-municipalities').text(o.municipalities || 0);
-                    $('#stat-events').text(o.events || 0);
-
-                    var gold = o.gold || 0;
-                    var silver = o.silver || 0;
-                    var bronze = o.bronze || 0;
-                    var total = o.total_medals || (gold + silver + bronze);
-
-                    $('#stat-total-medals').text(total);
-                    $('#stat-medal-breakdown').text(
-                        '(' + gold + 'G · ' + silver + 'S · ' + bronze + 'B)'
-                    );
-                    $('#stat-last-update').text(formatDateTime(o.last_update));
+                if (bootstrap && bootstrap.Modal) {
+                    var instance = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    instance.show();
+                    return;
                 }
 
-                if (resp.winners) {
-                    $('#winners-body').html(renderWinnersRows(resp.winners));
+                if ($.fn && $.fn.modal) {
+                    $(modalEl).modal('show');
+                    return;
                 }
-            }).fail(function() {
-                // fail silently for now
-            });
-        }
 
-        $(function() {
-            // initial refresh
-            refreshResults();
-            // auto-refresh every 30s
-            setInterval(refreshResults, 30000);
-        });
+                modalEl.classList.add('show');
+                modalEl.style.display = 'block';
+                modalEl.removeAttribute('aria-hidden');
+                modalEl.setAttribute('aria-modal', 'true');
+            }
+
+            function renderWinnersRows(winners) {
+                if (!winners || winners.length === 0) {
+                    return '<tr class="no-results-row">' +
+                        '<td colspan="6" class="text-center py-5" style="color:#94a3b8;font-size:1.1rem;">' +
+                        '🏅 No results are available yet. Please wait for the organizers to post the official list of winners.' +
+                        '</td></tr>';
+                }
+
+                var rows = '';
+                winners.forEach(function(row) {
+                    var medal = row.medal || 'Silver';
+                    var chipClass = 'chip-silver';
+                    if (medal === 'Gold') chipClass = 'chip-gold';
+                    else if (medal === 'Bronze') chipClass = 'chip-bronze';
+
+                    rows += '<tr>' +
+                        '<td class="align-middle">' + $('<div>').text(row.event_name || '').html() + '</td>' +
+                        '<td class="align-middle" style="white-space:nowrap;">' + $('<div>').text(row.event_group || '').html() + '</td>' +
+                        '<td class="align-middle" style="white-space:nowrap;">' + $('<div>').text(row.category || '-').html() + '</td>' +
+                        '<td class="align-middle">' + $('<div>').text(row.full_name || '').html() + '</td>' +
+                        '<td class="align-middle text-center">' +
+                        '<span class="chip-medal ' + chipClass + '">' +
+                        $('<div>').text(medal).html() +
+                        '</span>' +
+                        '</td>' +
+                        '<td class="align-middle">' + $('<div>').text(row.municipality || '').html() + '</td>' +
+                        '</tr>';
+                });
+
+                return rows;
+            }
+
+            function refreshResults() {
+                $.getJSON('<?= site_url('provincial/live_results'); ?>', function(resp) {
+                    if (!resp) return;
+
+                    if (resp.overview) {
+                        var o = resp.overview;
+                        $('#stat-municipalities').text(o.municipalities || 0);
+                        $('#stat-events').text(o.events || 0);
+
+                        var gold = o.gold || 0;
+                        var silver = o.silver || 0;
+                        var bronze = o.bronze || 0;
+                        var total = o.total_medals || (gold + silver + bronze);
+
+                        $('#stat-total-medals').text(total);
+                        $('#stat-medal-breakdown').text(
+                            '(' + gold + 'G · ' + silver + 'S · ' + bronze + 'B)'
+                        );
+                        $('#stat-last-update').text(formatDateTime(o.last_update));
+                    }
+
+                    if (resp.winners) {
+                        $('#winners-body').html(renderWinnersRows(resp.winners));
+                    }
+                }).fail(function() {
+                    // fail silently for now
+                });
+            }
+
+            $(function() {
+                $('.loader-wrapper').fadeOut(200);
+
+                $('#municipalityCard').on('click keypress', function(e) {
+                    if (e.type === 'click' || e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openMunicipalityModal();
+                    }
+                });
+
+                refreshResults();
+                setInterval(refreshResults, 30000);
+
+                var $picker = $('#municipalityPicker');
+                if ($picker.length) {
+                    var $select = $('#municipalitySelect');
+                    var $viewBtn = $('#municipalityViewButton');
+
+                    function goToMunicipality(municipality) {
+                        if (!municipality) return;
+                        var baseUrl = $picker.data('base-url') || '<?= site_url('provincial'); ?>';
+                        var groupQuery = $picker.data('group-query') || '';
+                        var url = baseUrl + '?municipality=' + encodeURIComponent(municipality) + groupQuery;
+                        window.location.href = url;
+                    }
+
+                    $viewBtn.on('click', function() {
+                        goToMunicipality($select.val());
+                    });
+
+                    // (optional) If you want changing the select to auto-jump, uncomment:
+                    // $select.on('change', function() {
+                    //     goToMunicipality($(this).val());
+                    // });
+                }
+            });
+        })(window.jQuery, window.bootstrap);
     </script>
 
 </body>
