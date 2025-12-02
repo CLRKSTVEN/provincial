@@ -274,6 +274,10 @@
         box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
     }
 
+    .summary-card.clickable {
+        cursor: pointer;
+    }
+
     .summary-card::before {
         content: '';
         position: absolute;
@@ -608,6 +612,7 @@
                         <!-- Summary row -->
                         <?php
                         $overview       = isset($overview) ? $overview : null;
+                        $activeMunicipality = isset($active_municipality) ? $active_municipality : '';
                         $municipalities = $overview ? (int)$overview->municipalities : 0;
                         $events         = $overview ? (int)$overview->events : 0;
                         $goldTotal      = $overview ? (int)$overview->gold : 0;
@@ -620,7 +625,7 @@
                         ?>
                         <div class="row summary-row">
                             <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="summary-card">
+                                <div class="summary-card clickable" id="municipalityCard" data-toggle="modal" data-target="#municipalityModal" data-bs-toggle="modal" data-bs-target="#municipalityModal">
                                     <div class="summary-label">Participating Municipalities</div>
                                     <div class="summary-value" id="stat-municipalities"><?= $municipalities; ?></div>
                                     <div class="summary-sub">with at least one officially recorded medal</div>
@@ -654,6 +659,12 @@
                         <!-- Winners Table -->
                         <div class="winners-table-wrapper">
                             <div class="table-responsive">
+                                <?php if (!empty($activeMunicipality)): ?>
+                                    <div class="alert alert-info mb-0" style="border-radius:0;">
+                                        Viewing medals for <strong><?= htmlspecialchars($activeMunicipality, ENT_QUOTES, 'UTF-8'); ?></strong>.
+                                        <a href="<?= site_url('provincial' . ($active_group !== 'ALL' ? '?group=' . urlencode($active_group) : '')); ?>" class="ml-2">Clear filter</a>
+                                    </div>
+                                <?php endif; ?>
                                 <table class="table table-sm table-hover mb-0 winners-table">
                                     <thead>
                                         <tr>
@@ -725,6 +736,70 @@
             </div>
         </div>
     </section>
+
+    <!-- Participating Municipalities Modal -->
+    <?php $tally = isset($municipality_tally) ? $municipality_tally : array(); ?>
+    <div class="modal fade" id="municipalityModal" tabindex="-1" role="dialog" aria-labelledby="municipalityModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="municipalityModalLabel">Participating Municipalities</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php if (!empty($tally)): ?>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Municipality</th>
+                                        <th class="text-center">Gold</th>
+                                        <th class="text-center">Silver</th>
+                                        <th class="text-center">Bronze</th>
+                                        <th class="text-center">Total</th>
+                                        <th class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $baseUrl = site_url('provincial');
+                                    $groupQuery = ($active_group === 'Elementary' || $active_group === 'Secondary')
+                                        ? '&group=' . urlencode($active_group)
+                                        : '';
+                                    ?>
+                                    <?php foreach ($tally as $row): ?>
+                                        <?php
+                                        $mName = $row->municipality;
+                                        $filterUrl = $baseUrl . '?municipality=' . urlencode($mName) . $groupQuery;
+                                        ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td class="text-center"><strong><?= (int) $row->gold; ?></strong></td>
+                                            <td class="text-center"><strong><?= (int) $row->silver; ?></strong></td>
+                                            <td class="text-center"><strong><?= (int) $row->bronze; ?></strong></td>
+                                            <td class="text-center"><?= (int) $row->total_medals; ?></td>
+                                            <td class="text-right">
+                                                <a href="<?= $filterUrl; ?>" class="btn btn-sm btn-outline-primary">
+                                                    View dashboard
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php else: ?>
+                        <div class="text-center text-muted py-3">No municipalities recorded yet.</div>
+                    <?php endif; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- JS -->
     <script src="<?= base_url(); ?>assets/js/jquery-3.5.1.min.js"></script>

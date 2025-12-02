@@ -7,7 +7,25 @@ class Winners_model extends CI_Model
     {
         return $this->db->insert('winners', $data);
     }
-    public function get_winners_list($event_group = null)
+
+    public function update_winner($id, $data)
+    {
+        return $this->db->update('winners', $data, array('id' => (int) $id));
+    }
+
+    public function delete_winner($id)
+    {
+        return $this->db->delete('winners', array('id' => (int) $id));
+    }
+
+    public function get_winner($id)
+    {
+        return $this->db
+            ->get_where('winners', array('id' => (int) $id))
+            ->row();
+    }
+
+    public function get_winners_list($event_group = null, $municipality = null)
     {
         $this->db->select("
         event_name,
@@ -23,12 +41,15 @@ class Winners_model extends CI_Model
         if ($event_group === 'Elementary' || $event_group === 'Secondary') {
             $this->db->where('event_group', $event_group);
         }
+        if (!empty($municipality)) {
+            $this->db->where('municipality', $municipality);
+        }
 
-        // Order: Event, Group, Category, Medal (Gold > Silver > Bronze), Name
+        // Order: Medal (Gold > Silver > Bronze), Event, Group, Category, Name
+        $this->db->order_by("FIELD(medal, 'Gold', 'Silver', 'Bronze')", '', FALSE);
         $this->db->order_by('event_name', 'ASC');
         $this->db->order_by('event_group', 'ASC');
         $this->db->order_by('category', 'ASC');
-        $this->db->order_by("FIELD(medal, 'Gold', 'Silver', 'Bronze')", '', FALSE);
         $this->db->order_by('full_name', 'ASC');
 
         return $this->db->get()->result();
@@ -37,9 +58,14 @@ class Winners_model extends CI_Model
     public function get_recent_winners($limit = 10)
     {
         $this->db->select("
+            id,
+            event_id,
             event_name,
             event_group,
             category,
+            first_name,
+            middle_name,
+            last_name,
             CONCAT(last_name, ', ', first_name, ' ', COALESCE(middle_name, '')) AS full_name,
             medal,
             municipality,
@@ -95,7 +121,7 @@ class Winners_model extends CI_Model
     }
 
     // NEW: overview stats for the header cards
-    public function get_overview($event_group = null)
+    public function get_overview($event_group = null, $municipality = null)
     {
         $this->db->select("
             COUNT(DISTINCT municipality)         AS municipalities,
@@ -110,6 +136,9 @@ class Winners_model extends CI_Model
 
         if ($event_group === 'Elementary' || $event_group === 'Secondary') {
             $this->db->where('event_group', $event_group);
+        }
+        if (!empty($municipality)) {
+            $this->db->where('municipality', $municipality);
         }
 
         return $this->db->get()->row();

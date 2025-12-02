@@ -68,6 +68,11 @@
                     <!-- Page title -->
                     <?php
                     $validation_list = validation_errors('<li>', '</li>');
+                    $error_message   = $this->session->flashdata('error');
+                    $category_error  = $this->session->flashdata('category_error');
+                    $event_categories_list = isset($event_categories) ? $event_categories : array();
+                    $events_list = isset($events) ? $events : array();
+                    $municipalities_list = isset($municipalities) ? $municipalities : array();
                     $meet_title = isset($meet->meet_title) ? $meet->meet_title : 'Provincial Meet';
                     $meet_year  = isset($meet->meet_year)  ? $meet->meet_year  : date('Y');
                     ?>
@@ -83,7 +88,7 @@
                                 <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
 
                                     <!-- Primary action -->
-                                    <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#winnerModal">
+                                    <button class="btn btn-sm btn-outline-primary" id="openWinnerModal" data-toggle="modal" data-target="#winnerModal">
                                         <i class="mdi mdi-plus"></i> New Entry
                                     </button>
                                     <!-- Secondary action -->
@@ -110,6 +115,20 @@
                             <?php if ($this->session->flashdata('success')): ?>
                                 <div class="alert alert-success alert-dismissible fade show">
                                     <?= $this->session->flashdata('success'); ?>
+                                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($error_message)): ?>
+                                <div class="alert alert-danger alert-dismissible fade show">
+                                    <?= $error_message; ?>
+                                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($category_error)): ?>
+                                <div class="alert alert-danger alert-dismissible fade show">
+                                    <?= $category_error; ?>
                                     <button type="button" class="close" data-dismiss="alert">&times;</button>
                                 </div>
                             <?php endif; ?>
@@ -151,6 +170,7 @@
                                                         <th>Winner</th>
                                                         <th class="text-center">Medal</th>
                                                         <th>Municipality</th>
+                                                        <th class="text-right">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -172,6 +192,27 @@
                                                                 <span class="badge badge-medal <?= $badgeClass; ?>"><?= htmlspecialchars($row->medal, ENT_QUOTES, 'UTF-8'); ?></span>
                                                             </td>
                                                             <td><?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <td class="text-right">
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-outline-secondary btn-sm btn-edit-winner"
+                                                                    data-id="<?= (int) $row->id; ?>"
+                                                                    data-event-id="<?= (int) $row->event_id; ?>"
+                                                                    data-first-name="<?= htmlspecialchars($row->first_name, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                    data-middle-name="<?= htmlspecialchars($row->middle_name, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                    data-last-name="<?= htmlspecialchars($row->last_name, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                    data-medal="<?= htmlspecialchars($row->medal, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                    data-municipality="<?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>">
+                                                                    Edit
+                                                                </button>
+                                                                <form action="<?= site_url('provincial/delete_winner/' . (int) $row->id); ?>"
+                                                                    method="post" style="display:inline-block;"
+                                                                    onsubmit="return confirm('Delete this winner?');">
+                                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                                        Delete
+                                                                    </button>
+                                                                </form>
+                                                            </td>
                                                         </tr>
                                                     <?php endforeach; ?>
                                                 </tbody>
@@ -183,6 +224,65 @@
                                             <p class="mb-0">No entries yet. Click “New Entry” to start encoding.</p>
                                         </div>
                                     <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Categories CRUD -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div>
+                                            <h5 class="card-title mb-0">Categories</h5>
+                                            <small class="text-muted">Add, edit, or delete event categories.</small>
+                                        </div>
+                                        <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addCategoryModal">
+                                            <i class="mdi mdi-plus"></i> Add Category
+                                        </button>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width:70%;">Category Name</th>
+                                                    <th class="text-right" style="width:30%;">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php if (!empty($event_categories_list)): ?>
+                                                    <?php foreach ($event_categories_list as $category): ?>
+                                                        <tr>
+                                                            <td><?= htmlspecialchars($category->category_name, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <td class="text-right">
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-outline-secondary btn-sm btn-edit-category"
+                                                                    data-id="<?= (int) $category->category_id; ?>"
+                                                                    data-name="<?= htmlspecialchars($category->category_name, ENT_QUOTES, 'UTF-8'); ?>">
+                                                                    Edit
+                                                                </button>
+                                                                <form action="<?= site_url('provincial/delete_category/' . (int) $category->category_id); ?>"
+                                                                    method="post" style="display:inline-block;"
+                                                                    onsubmit="return confirm('Delete this category?');">
+                                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                                        Delete
+                                                                    </button>
+                                                                </form>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <tr>
+                                                        <td colspan="2" class="text-center text-muted">No categories found.</td>
+                                                    </tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -258,8 +358,9 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <?= form_open('provincial/admin'); ?>
+                <?= form_open('provincial/admin', array('id' => 'winnerForm')); ?>
                 <div class="modal-body">
+                    <input type="hidden" name="winner_id" id="winnerIdField" value="">
                     <div class="form-row">
                         <div class="form-group col-md-4">
                             <label>First Name <span class="text-danger">*</span></label>
@@ -279,27 +380,57 @@
                     </div>
 
                     <div class="form-group">
+                        <label>Category filter</label>
+                        <select name="category_filter" id="categoryFilter" class="form-control">
+                            <option value="">-- All Categories --</option>
+                            <?php foreach ($event_categories_list as $category): ?>
+                                <option value="<?= (int) $category->category_id; ?>" <?= set_select('category_filter', $category->category_id); ?>>
+                                    <?= htmlspecialchars($category->category_name, ENT_QUOTES, 'UTF-8'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small class="form-text text-muted">Use this to narrow the event list by category.</small>
+                    </div>
+
+                    <div class="form-group">
                         <label>Event <span class="text-danger">*</span></label>
-                        <input type="text" name="event_name" class="form-control"
-                            placeholder="e.x: 100m Dash (Boys)"
-                            value="<?= set_value('event_name'); ?>" required>
+                        <select name="event_id" id="eventSelect" class="form-control" required>
+                            <option value="">-- Select Event --</option>
+                            <?php foreach ($events_list as $event): ?>
+                                <?php
+                                $parts = array();
+                                if (!empty($event->group_name)) {
+                                    $parts[] = $event->group_name;
+                                }
+                                $parts[] = $event->event_name;
+                                if (!empty($event->category_name)) {
+                                    $parts[] = $event->category_name;
+                                }
+                                $label = implode(' – ', $parts);
+                                ?>
+                                <option value="<?= (int) $event->event_id; ?>"
+                                    data-category-id="<?= $event->category_id !== null ? (int) $event->category_id : ''; ?>"
+                                    data-category-name="<?= htmlspecialchars($event->category_name ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-group-name="<?= htmlspecialchars($event->group_name ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                    <?= set_select('event_id', $event->event_id); ?>>
+                                    <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
 
                     <div class="form-row">
-                        <div class="form-group col-md-4">
-                            <label>Group <span class="text-danger">*</span></label>
-                            <select name="event_group" class="form-control" required>
-                                <option value="">-- Select Group --</option>
-                                <option value="Elementary" <?= set_select('event_group', 'Elementary'); ?>>Elementary</option>
-                                <option value="Secondary" <?= set_select('event_group', 'Secondary'); ?>>Secondary</option>
-                            </select>
+                        <div class="form-group col-md-6">
+                            <label>Group – auto-set from event</label>
+                            <input type="text" class="form-control" id="selectedGroup" value="Select an event" readonly>
                         </div>
-                        <div class="form-group col-md-4">
-                            <label>Category</label>
-                            <input type="text" name="category" class="form-control"
-                                placeholder="e.x: Boys Team"
-                                value="<?= set_value('category'); ?>">
+                        <div class="form-group col-md-6">
+                            <label>Category – auto-set from event</label>
+                            <input type="text" class="form-control" id="selectedCategory" value="Select an event" readonly>
                         </div>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group col-md-4">
                             <label>Medal <span class="text-danger">*</span></label>
                             <select name="medal" class="form-control" required>
@@ -309,18 +440,24 @@
                                 <option value="Bronze" <?= set_select('medal', 'Bronze'); ?>>Bronze</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Municipality <span class="text-danger">*</span></label>
-                        <input type="text" name="municipality" class="form-control"
-                            placeholder="Input Address"
-                            value="<?= set_value('municipality'); ?>" required>
+                        <div class="form-group col-md-8">
+                            <label>Municipality <span class="text-danger">*</span></label>
+                            <select name="municipality" id="municipalitySelect" class="form-control" required>
+                                <option value="">-- Select Municipality --</option>
+                                <?php foreach ($municipalities_list as $municipality): ?>
+                                    <?php $name = $municipality->municipality; ?>
+                                    <option value="<?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>"
+                                        <?= set_select('municipality', $name); ?>>
+                                        <?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                    <button type="submit" name="submit" value="1" class="btn btn-success">
+                    <button type="submit" name="submit" value="1" class="btn btn-success" id="winnerSubmitBtn">
                         <i class="mdi mdi-content-save-outline"></i> Save Winner
                     </button>
                 </div>
@@ -329,9 +466,224 @@
         </div>
     </div>
 
+    <!-- Add Category Modal -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1" role="dialog" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCategoryModalLabel">Add Category</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <?= form_open('provincial/add_category'); ?>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Category Name</label>
+                        <input type="text" name="category_name" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+                <?= form_close(); ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" role="dialog" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <?= form_open('provincial/update_category'); ?>
+                <div class="modal-body">
+                    <input type="hidden" name="category_id" id="editCategoryId">
+                    <div class="form-group">
+                        <label>Category Name</label>
+                        <input type="text" name="category_name" id="editCategoryName" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+                <?= form_close(); ?>
+            </div>
+        </div>
+    </div>
+
     <script>
         $(function() {
-            <?php if (!empty($validation_list)): ?>
+            var createAction = "<?= site_url('provincial/admin'); ?>";
+            var updateAction = "<?= site_url('provincial/update_winner'); ?>";
+            var $eventSelect = $('#eventSelect');
+            var $categoryFilter = $('#categoryFilter');
+            var $groupDisplay = $('#selectedGroup');
+            var $categoryDisplay = $('#selectedCategory');
+            var $winnerForm = $('#winnerForm');
+            var $winnerSubmitBtn = $('#winnerSubmitBtn');
+            var $winnerModalLabel = $('#winnerModalLabel');
+            var suppressEventSync = false;
+
+            function updateMeta() {
+                var $selected = $eventSelect.find('option:selected');
+                if (!$selected.val()) {
+                    $groupDisplay.val('Select an event');
+                    $categoryDisplay.val('Select an event');
+                    return;
+                }
+
+                var groupName = $selected.data('group-name') || 'Unspecified';
+                var categoryName = $selected.data('category-name') || 'Unspecified';
+
+                $groupDisplay.val(groupName);
+                $categoryDisplay.val(categoryName);
+            }
+
+            function filterEvents() {
+                var selectedCategory = ($categoryFilter.val() || '').toString();
+
+                $eventSelect.find('option').each(function() {
+                    var $option = $(this);
+                    if (!$option.val()) {
+                        return;
+                    }
+
+                    var optionCategory = ($option.data('category-id') || '').toString();
+                    var shouldShow = selectedCategory === '' || optionCategory === selectedCategory;
+                    $option.toggle(shouldShow);
+                });
+
+                if ($eventSelect.find('option:selected').is(':hidden')) {
+                    $eventSelect.val('');
+                }
+
+                updateMeta();
+            }
+
+            $categoryFilter.on('change', filterEvents);
+
+            function setCategoryFilterValue(val) {
+                $categoryFilter.val(val).trigger('change.select2');
+                filterEvents();
+            }
+
+            function handleEventChange() {
+                if (suppressEventSync) {
+                    updateMeta();
+                    return;
+                }
+
+                var $selected = $eventSelect.find('option:selected');
+                var selectedCategory = ($selected.data('category-id') || '').toString();
+                var currentFilter = ($categoryFilter.val() || '').toString();
+
+                // Align category filter with the selected event's category
+                if (currentFilter !== selectedCategory) {
+                    setCategoryFilterValue(selectedCategory);
+                } else {
+                    updateMeta();
+                }
+            }
+
+            $eventSelect.on('change', handleEventChange);
+
+            filterEvents();
+            updateMeta();
+
+            function setCreateMode() {
+                suppressEventSync = true;
+                $winnerForm.attr('action', createAction);
+                $('#winnerIdField').val('');
+                $('input[name=\"first_name\"]').val('');
+                $('input[name=\"middle_name\"]').val('');
+                $('input[name=\"last_name\"]').val('');
+                $('#municipalitySelect').val('').trigger('change');
+                $eventSelect.val('').trigger('change');
+                setCategoryFilterValue('');
+                $('select[name=\"medal\"]').val('').trigger('change');
+                $winnerSubmitBtn.html('<i class=\"mdi mdi-content-save-outline\"></i> Save Winner');
+                $winnerModalLabel.text('New Entry');
+                suppressEventSync = false;
+                updateMeta();
+            }
+
+            function setEditMode(data) {
+                suppressEventSync = true;
+                $winnerForm.attr('action', updateAction);
+                $('#winnerIdField').val(data.id || '');
+                $('input[name=\"first_name\"]').val(data.first_name || '');
+                $('input[name=\"middle_name\"]').val(data.middle_name || '');
+                $('input[name=\"last_name\"]').val(data.last_name || '');
+                $('select[name=\"medal\"]').val(data.medal || '').trigger('change');
+                $('#municipalitySelect').val(data.municipality || '').trigger('change');
+
+                // Ensure event is visible and selected
+                var selectedOption = $eventSelect.find('option[value=\"' + (data.event_id || '') + '\"]');
+                var catId = selectedOption.data('category-id');
+                setCategoryFilterValue(catId !== undefined && catId !== '' ? catId.toString() : '');
+                $eventSelect.val(data.event_id || '').trigger('change');
+
+                $winnerSubmitBtn.html('<i class=\"mdi mdi-content-save-outline\"></i> Update Winner');
+                $winnerModalLabel.text('Edit Entry');
+                suppressEventSync = false;
+                updateMeta();
+            }
+
+            $('#openWinnerModal').on('click', function() {
+                setCreateMode();
+            });
+
+            // Large list search for categories
+            $('#categoryFilter').select2({
+                placeholder: 'All Categories',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#winnerModal')
+            });
+
+            // Large list search for municipalities
+            $('#municipalitySelect').select2({
+                placeholder: 'Select Municipality',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#winnerModal')
+            });
+
+            // Winner edit handler
+            $('.btn-edit-winner').on('click', function() {
+                var $btn = $(this);
+                var data = {
+                    id: $btn.data('id'),
+                    event_id: $btn.data('event-id'),
+                    first_name: $btn.data('first-name'),
+                    middle_name: $btn.data('middle-name'),
+                    last_name: $btn.data('last-name'),
+                    medal: $btn.data('medal'),
+                    municipality: $btn.data('municipality')
+                };
+
+                setEditMode(data);
+                $('#winnerModal').modal('show');
+            });
+
+            // Category edit handler
+            $('.btn-edit-category').on('click', function() {
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+                $('#editCategoryId').val(id);
+                $('#editCategoryName').val(name);
+                $('#editCategoryModal').modal('show');
+            });
+
+            <?php if (!empty($validation_list) || !empty($error_message)): ?>
                 $('#winnerModal').modal('show');
             <?php endif; ?>
         });
