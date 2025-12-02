@@ -1,10 +1,19 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-// $config['base_url'] = 'https://college-my.wcmanila.edu.ph/';
-// $config['base_url'] = 'http://localhost/attendance-srms/';
-// $config['base_url'] = 'https://fbmso.softtechco.biz/';
-$config['base_url'] = 'http://localhost/provincial/';
+// Auto-detect base URL so assets/scripts load with the right scheme (avoids HTTPS mixed content).
+$detected_scheme = 'http://';
+if (
+    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+) {
+    $detected_scheme = 'https://';
+}
+$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+$script_dir = isset($_SERVER['SCRIPT_NAME']) ? dirname($_SERVER['SCRIPT_NAME']) : '';
+$script_dir = rtrim($script_dir, '/\\');
+$base_path = ($script_dir === '' || $script_dir === '.') ? '/' : $script_dir . '/';
+$config['base_url'] = $detected_scheme . $host . $base_path;
 $config['enable_hooks'] = TRUE;
 $config['maintenance_mode'] = False;
 

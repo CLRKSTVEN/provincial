@@ -1,5 +1,6 @@
 RewriteEngine On
-RewriteBase /provincial/
+# Keep RewriteBase unset so this works whether the app is in a subfolder (local)
+# or is the document root (production). Using a fixed base can break subdomains.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php/$1 [L]
