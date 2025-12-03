@@ -25,38 +25,38 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/custom-sidebar-icons.css'); ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/masterlist-responsive.css'); ?>">
     <style>
-        /* Local Poppins font (regular/medium/semibold/bold) */
+        /* Local Montserrat font (regular/medium/semibold/bold) */
         @font-face {
-            font-family: 'Poppins';
+            font-family: 'Montserrat';
             font-style: normal;
             font-weight: 400;
             font-display: swap;
-            src: url('<?= base_url('assets/fonts/poppins/Poppins-Regular.ttf'); ?>') format('truetype');
+            src: url('<?= base_url('assets/fonts/montserrat/Montserrat-Regular.ttf'); ?>') format('truetype');
         }
         @font-face {
-            font-family: 'Poppins';
+            font-family: 'Montserrat';
             font-style: normal;
             font-weight: 500;
             font-display: swap;
-            src: url('<?= base_url('assets/fonts/poppins/Poppins-Medium.ttf'); ?>') format('truetype');
+            src: url('<?= base_url('assets/fonts/montserrat/Montserrat-Medium.ttf'); ?>') format('truetype');
         }
         @font-face {
-            font-family: 'Poppins';
+            font-family: 'Montserrat';
             font-style: normal;
             font-weight: 600;
             font-display: swap;
-            src: url('<?= base_url('assets/fonts/poppins/Poppins-SemiBold.ttf'); ?>') format('truetype');
+            src: url('<?= base_url('assets/fonts/montserrat/Montserrat-SemiBold.ttf'); ?>') format('truetype');
         }
         @font-face {
-            font-family: 'Poppins';
+            font-family: 'Montserrat';
             font-style: normal;
             font-weight: 700;
             font-display: swap;
-            src: url('<?= base_url('assets/fonts/poppins/Poppins-Bold.ttf'); ?>') format('truetype');
+            src: url('<?= base_url('assets/fonts/montserrat/Montserrat-Bold.ttf'); ?>') format('truetype');
         }
 
         :root {
-            --app-font: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --app-font: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         body, button, input, select, textarea, .btn {
             font-family: var(--app-font);

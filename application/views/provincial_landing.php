@@ -337,6 +337,83 @@
         margin-top: 6px;
     }
 
+    .winners-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 18px;
+        background: linear-gradient(to right, #F8FAFC 0%, #EEF2FF 100%);
+        border-bottom: 1px solid #e2e8f0;
+        flex-wrap: wrap;
+    }
+
+    .winners-toolbar-left {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .winners-heading {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        color: #1e293b;
+    }
+
+    .winners-subtext {
+        margin: 0;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+
+    .winners-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #475569;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+    }
+
+    .filter-chip-primary {
+        background: #EEF2FF;
+        border-color: #C7D2FE;
+        color: #4338ca;
+    }
+
+    .filter-chip-accent {
+        background: #EFF6FF;
+        border-color: #BFDBFE;
+        color: #0ea5e9;
+    }
+
+    .filter-chip-muted {
+        background: #F8FAFC;
+        border-color: #E2E8F0;
+        color: #94a3b8;
+    }
+
+    .clear-filter-btn {
+        border-radius: 999px;
+        font-weight: 700;
+        padding: 8px 14px;
+    }
+
     .table-responsive {
         flex: 1;
         overflow-y: auto;
@@ -537,6 +614,15 @@
             font-size: 0.85rem;
         }
 
+        .winners-toolbar {
+            align-items: flex-start;
+        }
+
+        .winners-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
         .footer-note {
             justify-content: center;
             text-align: center;
@@ -567,6 +653,16 @@
         .login-btn {
             width: 100%;
             justify-content: center;
+        }
+
+        .winners-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .winners-actions .clear-filter-btn {
+            width: 100%;
+            text-align: center;
         }
     }
 </style>
@@ -685,13 +781,33 @@
 
                         <!-- Winners Table -->
                         <div class="winners-table-wrapper">
+                            <div class="winners-toolbar">
+                                <div class="winners-toolbar-left">
+                                    <h5 class="winners-heading">Winners Table</h5>
+                                    <p class="winners-subtext mb-0">Live medal board (auto-refreshes every 30s).</p>
+                                </div>
+                                <div class="winners-actions">
+                                    <span class="filter-chip <?= $group === 'ALL' ? 'filter-chip-muted' : 'filter-chip-primary'; ?>">
+                                        <?= $group === 'ALL'
+                                            ? 'Group: All'
+                                            : 'Group: ' . htmlspecialchars($group, ENT_QUOTES, 'UTF-8'); ?>
+                                    </span>
+                                    <?php if (!empty($activeMunicipality)): ?>
+                                        <span class="filter-chip filter-chip-accent">
+                                            Municipality: <?= htmlspecialchars($activeMunicipality, ENT_QUOTES, 'UTF-8'); ?>
+                                        </span>
+                                        <a href="<?= site_url('provincial' . ($group !== 'ALL' ? '?group=' . urlencode($group) : '')); ?>"
+                                            class="btn btn-sm btn-outline-danger clear-filter-btn">
+                                            Clear filter
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="filter-chip filter-chip-muted">
+                                            Municipality: All
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                             <div class="table-responsive">
-                                <?php if (!empty($activeMunicipality)): ?>
-                                    <div class="alert alert-info mb-0" style="border-radius:0;">
-                                        Viewing medals for <strong><?= htmlspecialchars($activeMunicipality, ENT_QUOTES, 'UTF-8'); ?></strong>.
-                                        <a href="<?= site_url('provincial' . ($group !== 'ALL' ? '?group=' . urlencode($group) : '')); ?>" class="ml-2">Clear filter</a>
-                                    </div>
-                                <?php endif; ?>
                                 <table class="table table-sm table-hover mb-0 winners-table">
                                     <thead>
                                         <tr>
