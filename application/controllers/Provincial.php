@@ -52,12 +52,22 @@ class Provincial extends CI_Controller
         if ($this->input->post('submit')) {
 
             $this->form_validation->set_rules('event_id', 'Event', 'required|integer|greater_than[0]');
-            $this->form_validation->set_rules('first_name', 'First Name', 'required|trim');
-            $this->form_validation->set_rules('last_name', 'Last Name', 'required|trim');
-            $this->form_validation->set_rules('medal', 'Medal', 'required|trim');
-            $this->form_validation->set_rules('municipality', 'Municipality', 'required|trim');
+            $rawRows = $this->input->post('winners', TRUE);
+            list($winnerRows, $rowErrors) = $this->normalize_winner_rows($rawRows);
 
             if ($this->form_validation->run()) {
+                if (!empty($rowErrors)) {
+                    $this->session->set_flashdata('error', implode('<br>', $rowErrors));
+                    redirect('provincial/admin');
+                    return;
+                }
+
+                if (empty($winnerRows)) {
+                    $this->session->set_flashdata('error', 'Please add at least one winner.');
+                    redirect('provincial/admin');
+                    return;
+                }
+
                 $eventId = (int) $this->input->post('event_id', TRUE);
                 $event   = $this->Events_model->get_event_details($eventId);
 
@@ -67,20 +77,27 @@ class Provincial extends CI_Controller
                     return;
                 }
 
-                $insert = array(
-                    'event_id'    => $event->event_id,
-                    'event_name'  => $event->event_name,
-                    'event_group' => $event->group_name ?? 'Unspecified',
-                    'category'    => $event->category_name,
-                    'first_name'   => $this->input->post('first_name', TRUE),
-                    'middle_name'  => $this->input->post('middle_name', TRUE),
-                    'last_name'    => $this->input->post('last_name', TRUE),
-                    'medal'        => $this->input->post('medal', TRUE),
-                    'municipality' => $this->input->post('municipality', TRUE),
-                );
+                foreach ($winnerRows as $row) {
+                    $insert = array(
+                        'event_id'    => $event->event_id,
+                        'event_name'  => $event->event_name,
+                        'event_group' => $event->group_name ?? 'Unspecified',
+                        'category'    => $event->category_name,
+                        'first_name'  => $row['first_name'],
+                        'middle_name' => $row['middle_name'],
+                        'last_name'   => $row['last_name'],
+                        'medal'       => $row['medal'],
+                        'municipality'=> $row['municipality'],
+                    );
 
-                $this->Winners_model->insert_winner($insert);
-                $this->session->set_flashdata('success', 'Winner saved successfully.');
+                    $this->Winners_model->insert_winner($insert);
+                }
+
+                $count = count($winnerRows);
+                $message = $count > 1
+                    ? $count . ' winners saved successfully.'
+                    : 'Winner saved successfully.';
+                $this->session->set_flashdata('success', $message);
                 redirect('provincial/admin');
                 return;
             }
@@ -100,12 +117,40 @@ class Provincial extends CI_Controller
     {
         $this->form_validation->set_rules('winner_id', 'Winner ID', 'required|integer|greater_than[0]');
         $this->form_validation->set_rules('event_id', 'Event', 'required|integer|greater_than[0]');
-        $this->form_validation->set_rules('first_name', 'First Name', 'required|trim');
-        $this->form_validation->set_rules('last_name', 'Last Name', 'required|trim');
-        $this->form_validation->set_rules('medal', 'Medal', 'required|trim');
-        $this->form_validation->set_rules('municipality', 'Municipality', 'required|trim');
+        $rawRows = $this->input->post('winners', TRUE);
+
+        // Backward compatibility if the request comes from the old single-entry form
+        if (!is_array($rawRows)) {
+            $rawRows = array(array(
+                'first_name'   => $this->input->post('first_name', TRUE),
+                'middle_name'  => $this->input->post('middle_name', TRUE),
+                'last_name'    => $this->input->post('last_name', TRUE),
+                'medal'        => $this->input->post('medal', TRUE),
+                'municipality' => $this->input->post('municipality', TRUE),
+            ));
+        }
+
+        list($winnerRows, $rowErrors) = $this->normalize_winner_rows($rawRows);
 
         if ($this->form_validation->run()) {
+            if (!empty($rowErrors)) {
+                $this->session->set_flashdata('error', implode('<br>', $rowErrors));
+                redirect('provincial/admin');
+                return;
+            }
+
+            if (empty($winnerRows)) {
+                $this->session->set_flashdata('error', 'Please enter the winner details to update.');
+                redirect('provincial/admin');
+                return;
+            }
+
+            if (count($winnerRows) > 1) {
+                $this->session->set_flashdata('error', 'Please edit one winner at a time.');
+                redirect('provincial/admin');
+                return;
+            }
+
             $winnerId = (int) $this->input->post('winner_id', TRUE);
             $eventId  = (int) $this->input->post('event_id', TRUE);
 
@@ -123,16 +168,17 @@ class Provincial extends CI_Controller
                 return;
             }
 
+            $payload = $winnerRows[0];
             $update = array(
                 'event_id'    => $event->event_id,
                 'event_name'  => $event->event_name,
                 'event_group' => $event->group_name ?? 'Unspecified',
                 'category'    => $event->category_name,
-                'first_name'   => $this->input->post('first_name', TRUE),
-                'middle_name'  => $this->input->post('middle_name', TRUE),
-                'last_name'    => $this->input->post('last_name', TRUE),
-                'medal'        => $this->input->post('medal', TRUE),
-                'municipality' => $this->input->post('municipality', TRUE),
+                'first_name'   => $payload['first_name'],
+                'middle_name'  => $payload['middle_name'],
+                'last_name'    => $payload['last_name'],
+                'medal'        => $payload['medal'],
+                'municipality' => $payload['municipality'],
             );
 
             $this->Winners_model->update_winner($winnerId, $update);
@@ -227,6 +273,67 @@ class Provincial extends CI_Controller
         $this->Events_model->delete_category($id);
         $this->session->set_flashdata('success', 'Category deleted.');
         redirect('provincial/admin');
+    }
+
+    /**
+     * Normalize the posted winners payload: skip empty rows and surface per-row errors.
+     *
+     * @param array|null $rawRows
+     * @return array [$validRows, $errors]
+     */
+    private function normalize_winner_rows($rawRows)
+    {
+        $validRows = array();
+        $errors    = array();
+        $allowed   = array('Gold', 'Silver', 'Bronze');
+        $medalCounts = array('Gold' => 0, 'Silver' => 0, 'Bronze' => 0);
+
+        if (!is_array($rawRows)) {
+            return array($validRows, $errors);
+        }
+
+        foreach ($rawRows as $index => $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $first = isset($row['first_name']) ? trim($row['first_name']) : '';
+            $middle = isset($row['middle_name']) ? trim($row['middle_name']) : '';
+            $last = isset($row['last_name']) ? trim($row['last_name']) : '';
+            $municipality = isset($row['municipality']) ? trim($row['municipality']) : '';
+            $medal = isset($row['medal']) ? trim($row['medal']) : '';
+
+            $allEmpty = ($first === '' && $middle === '' && $last === '' && $municipality === '');
+            if ($allEmpty) {
+                continue;
+            }
+
+            $labelMedal = in_array($medal, $allowed, true) ? $medal : 'Entry';
+            $medalCounts[$labelMedal] = isset($medalCounts[$labelMedal]) ? $medalCounts[$labelMedal] + 1 : 1;
+            $label = ($labelMedal !== 'Entry')
+                ? $labelMedal . ' entry #' . $medalCounts[$labelMedal]
+                : 'Entry #' . ($index + 1);
+
+            if (!in_array($medal, $allowed, true)) {
+                $errors[] = $label . ' needs a valid medal (Gold, Silver, or Bronze).';
+                continue;
+            }
+
+            if ($first === '' || $last === '' || $municipality === '') {
+                $errors[] = $label . ' is missing first name, last name, or municipality.';
+                continue;
+            }
+
+            $validRows[] = array(
+                'first_name'   => $first,
+                'middle_name'  => $middle,
+                'last_name'    => $last,
+                'medal'        => $medal,
+                'municipality' => $municipality,
+            );
+        }
+
+        return array($validRows, $errors);
     }
 
     // NEW: update meet title/year/subtitle from admin

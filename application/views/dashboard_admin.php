@@ -53,6 +53,35 @@
         background: #ffedd5;
         color: #9a3412;
     }
+
+    .medal-section {
+        border: 1px dashed #e5e7eb;
+        background: #fff;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .medal-section .medal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .medal-row {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+    }
+
+    .medal-row .card-body {
+        padding: 12px;
+    }
+
+    .medal-row .form-group {
+        margin-bottom: 0.5rem;
+    }
 </style>
 
 <body>
@@ -89,7 +118,7 @@
 
                                     <!-- Primary action -->
                                     <button class="btn btn-sm btn-outline-primary" id="openWinnerModal" data-toggle="modal" data-target="#winnerModal">
-                                        <i class="mdi mdi-plus"></i> New Entry
+                                        <i class="mdi mdi-plus"></i> Add Winners
                                     </button>
                                     <!-- Secondary action -->
                                     <a href="<?= site_url('provincial/standings'); ?>" class="btn btn-outline-primary btn-sm">
@@ -221,7 +250,7 @@
                                     <?php else: ?>
                                         <div class="text-center text-muted py-4">
                                             <i class="mdi mdi-trophy-outline" style="font-size: 1.6rem;"></i>
-                                            <p class="mb-0">No entries yet. Click “New Entry” to start encoding.</p>
+                                            <p class="mb-0">No entries yet. Click “Add Winners” to start encoding.</p>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -353,7 +382,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="winnerModalLabel"><i class="mdi mdi-plus-circle-outline"></i> New Entry</h5>
+                    <h5 class="modal-title" id="winnerModalLabel"><i class="mdi mdi-plus-circle-outline"></i> Add Winners</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -361,24 +390,6 @@
                 <?= form_open('provincial/admin', array('id' => 'winnerForm')); ?>
                 <div class="modal-body">
                     <input type="hidden" name="winner_id" id="winnerIdField" value="">
-                    <div class="form-row">
-                        <div class="form-group col-md-4">
-                            <label>First Name <span class="text-danger">*</span></label>
-                            <input type="text" name="first_name" class="form-control"
-                                value="<?= set_value('first_name'); ?>" required>
-                        </div>
-                        <div class="form-group col-md-4">
-                            <label>Middle Name</label>
-                            <input type="text" name="middle_name" class="form-control"
-                                value="<?= set_value('middle_name'); ?>">
-                        </div>
-                        <div class="form-group col-md-4">
-                            <label>Last Name <span class="text-danger">*</span></label>
-                            <input type="text" name="last_name" class="form-control"
-                                value="<?= set_value('last_name'); ?>" required>
-                        </div>
-                    </div>
-
                     <div class="form-group">
                         <label>Category filter</label>
                         <select name="category_filter" id="categoryFilter" class="form-control">
@@ -430,35 +441,63 @@
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group col-md-4">
-                            <label>Medal <span class="text-danger">*</span></label>
-                            <select name="medal" class="form-control" required>
-                                <option value="">-- Select Medal --</option>
-                                <option value="Gold" <?= set_select('medal', 'Gold');   ?>>Gold</option>
-                                <option value="Silver" <?= set_select('medal', 'Silver'); ?>>Silver</option>
-                                <option value="Bronze" <?= set_select('medal', 'Bronze'); ?>>Bronze</option>
-                            </select>
+                    <div class="alert alert-info py-2">
+                        Add Gold, Silver, and Bronze winners in one go. Empty rows are skipped.
+                    </div>
+
+                    <div id="municipalityOptionsTemplate" class="d-none">
+                        <option value="">-- Select Municipality --</option>
+                        <?php foreach ($municipalities_list as $municipality): ?>
+                            <?php $name = $municipality->municipality; ?>
+                            <option value="<?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>">
+                                <?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <div class="medal-section" data-medal="Gold">
+                        <div class="medal-header mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="badge badge-medal badge-gold mr-2">Gold</span>
+                                <span class="text-muted small">Winners for this medal</span>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm btn-add-medal" data-medal="Gold">
+                                <i class="mdi mdi-plus"></i> Add Gold winner
+                            </button>
                         </div>
-                        <div class="form-group col-md-8">
-                            <label>Municipality <span class="text-danger">*</span></label>
-                            <select name="municipality" id="municipalitySelect" class="form-control" required>
-                                <option value="">-- Select Municipality --</option>
-                                <?php foreach ($municipalities_list as $municipality): ?>
-                                    <?php $name = $municipality->municipality; ?>
-                                    <option value="<?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>"
-                                        <?= set_select('municipality', $name); ?>>
-                                        <?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                        <div class="medal-rows" id="goldRows"></div>
+                    </div>
+
+                    <div class="medal-section" data-medal="Silver">
+                        <div class="medal-header mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="badge badge-medal badge-silver mr-2">Silver</span>
+                                <span class="text-muted small">Add one or more Silver winners</span>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm btn-add-medal" data-medal="Silver">
+                                <i class="mdi mdi-plus"></i> Add Silver winner
+                            </button>
                         </div>
+                        <div class="medal-rows" id="silverRows"></div>
+                    </div>
+
+                    <div class="medal-section mb-0" data-medal="Bronze">
+                        <div class="medal-header mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="badge badge-medal badge-bronze mr-2">Bronze</span>
+                                <span class="text-muted small">Add any Bronze winners</span>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm btn-add-medal" data-medal="Bronze">
+                                <i class="mdi mdi-plus"></i> Add Bronze winner
+                            </button>
+                        </div>
+                        <div class="medal-rows" id="bronzeRows"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
                     <button type="submit" name="submit" value="1" class="btn btn-success" id="winnerSubmitBtn">
-                        <i class="mdi mdi-content-save-outline"></i> Save Winner
+                        <i class="mdi mdi-content-save-outline"></i> Save Winners
                     </button>
                 </div>
                 <?= form_close(); ?>
@@ -530,6 +569,14 @@
             var $winnerForm = $('#winnerForm');
             var $winnerSubmitBtn = $('#winnerSubmitBtn');
             var $winnerModalLabel = $('#winnerModalLabel');
+            var medalContainers = {
+                Gold: $('#goldRows'),
+                Silver: $('#silverRows'),
+                Bronze: $('#bronzeRows')
+            };
+            var municipalityOptionsHtml = $('#municipalityOptionsTemplate').html();
+            var rowCounter = 0;
+            var isEditMode = false;
             var suppressEventSync = false;
 
             function updateMeta() {
@@ -585,7 +632,6 @@
                 var selectedCategory = ($selected.data('category-id') || '').toString();
                 var currentFilter = ($categoryFilter.val() || '').toString();
 
-                // Align category filter with the selected event's category
                 if (currentFilter !== selectedCategory) {
                     setCategoryFilterValue(selectedCategory);
                 } else {
@@ -598,41 +644,127 @@
             filterEvents();
             updateMeta();
 
+            function clearAllRows() {
+                $.each(medalContainers, function(key, $container) {
+                    $container.empty();
+                });
+            }
+
+            function addWinnerRow(medal, data) {
+                data = data || {};
+                if (!medalContainers[medal]) {
+                    return;
+                }
+
+                if (isEditMode) {
+                    clearAllRows();
+                }
+
+                rowCounter += 1;
+                var index = rowCounter;
+                var badgeClass = 'badge-bronze';
+                if (medal === 'Gold') {
+                    badgeClass = 'badge-gold';
+                } else if (medal === 'Silver') {
+                    badgeClass = 'badge-silver';
+                }
+
+                var entryNumber = medalContainers[medal].find('.medal-row').length + 1;
+                var $row = $(
+                    '<div class="medal-row card mb-2" data-medal="' + medal + '">' +
+                        '<div class="card-body pb-2">' +
+                            '<div class="d-flex align-items-center justify-content-between mb-2">' +
+                                '<div class="d-flex align-items-center">' +
+                                    '<span class="badge badge-medal ' + badgeClass + ' mr-2">' + medal + '</span>' +
+                                    '<small class="text-muted">Entry ' + entryNumber + '</small>' +
+                                '</div>' +
+                                '<button type="button" class="btn btn-link text-danger p-0 btn-remove-row">Remove</button>' +
+                            '</div>' +
+                            '<div class="form-row">' +
+                                '<div class="form-group col-md-3">' +
+                                    '<label class="small text-muted mb-1">First name</label>' +
+                                    '<input type="text" name="winners[' + index + '][first_name]" class="form-control form-control-sm">' +
+                                '</div>' +
+                                '<div class="form-group col-md-3">' +
+                                    '<label class="small text-muted mb-1">Middle name</label>' +
+                                    '<input type="text" name="winners[' + index + '][middle_name]" class="form-control form-control-sm">' +
+                                '</div>' +
+                                '<div class="form-group col-md-3">' +
+                                    '<label class="small text-muted mb-1">Last name</label>' +
+                                    '<input type="text" name="winners[' + index + '][last_name]" class="form-control form-control-sm">' +
+                                '</div>' +
+                                '<div class="form-group col-md-3">' +
+                                    '<label class="small text-muted mb-1">Municipality</label>' +
+                                    '<select name="winners[' + index + '][municipality]" class="form-control form-control-sm">' +
+                                        municipalityOptionsHtml +
+                                    '</select>' +
+                                '</div>' +
+                            '</div>' +
+                            '<input type="hidden" name="winners[' + index + '][medal]" value="' + medal + '">' +
+                        '</div>' +
+                    '</div>'
+                );
+
+                $row.find('input[name="winners[' + index + '][first_name]"]').val(data.first_name || '');
+                $row.find('input[name="winners[' + index + '][middle_name]"]').val(data.middle_name || '');
+                $row.find('input[name="winners[' + index + '][last_name]"]').val(data.last_name || '');
+                $row.find('select[name="winners[' + index + '][municipality]"]').val(data.municipality || '');
+
+                medalContainers[medal].append($row);
+            }
+
+            function seedDefaultRows() {
+                clearAllRows();
+                rowCounter = 0;
+                addWinnerRow('Gold');
+            }
+
+            function ensureBaseRows() {
+                if (medalContainers.Gold.find('.medal-row').length === 0) {
+                    addWinnerRow('Gold');
+                }
+            }
+
+            $(document).on('click', '.btn-add-medal', function() {
+                var medal = $(this).data('medal');
+                addWinnerRow(medal);
+            });
+
+            $(document).on('click', '.btn-remove-row', function() {
+                $(this).closest('.medal-row').remove();
+            });
+
             function setCreateMode() {
+                isEditMode = false;
                 suppressEventSync = true;
                 $winnerForm.attr('action', createAction);
                 $('#winnerIdField').val('');
-                $('input[name=\"first_name\"]').val('');
-                $('input[name=\"middle_name\"]').val('');
-                $('input[name=\"last_name\"]').val('');
-                $('#municipalitySelect').val('').trigger('change');
                 $eventSelect.val('').trigger('change');
                 setCategoryFilterValue('');
-                $('select[name=\"medal\"]').val('').trigger('change');
-                $winnerSubmitBtn.html('<i class=\"mdi mdi-content-save-outline\"></i> Save Winner');
-                $winnerModalLabel.text('New Entry');
+                $winnerSubmitBtn.html('<i class="mdi mdi-content-save-outline"></i> Save Winners');
+                $winnerModalLabel.text('Add Winners');
+                seedDefaultRows();
                 suppressEventSync = false;
                 updateMeta();
             }
 
             function setEditMode(data) {
+                isEditMode = true;
                 suppressEventSync = true;
                 $winnerForm.attr('action', updateAction);
                 $('#winnerIdField').val(data.id || '');
-                $('input[name=\"first_name\"]').val(data.first_name || '');
-                $('input[name=\"middle_name\"]').val(data.middle_name || '');
-                $('input[name=\"last_name\"]').val(data.last_name || '');
-                $('select[name=\"medal\"]').val(data.medal || '').trigger('change');
-                $('#municipalitySelect').val(data.municipality || '').trigger('change');
 
-                // Ensure event is visible and selected
-                var selectedOption = $eventSelect.find('option[value=\"' + (data.event_id || '') + '\"]');
+                var selectedOption = $eventSelect.find('option[value="' + (data.event_id || '') + '"]');
                 var catId = selectedOption.data('category-id');
                 setCategoryFilterValue(catId !== undefined && catId !== '' ? catId.toString() : '');
                 $eventSelect.val(data.event_id || '').trigger('change');
 
-                $winnerSubmitBtn.html('<i class=\"mdi mdi-content-save-outline\"></i> Update Winner');
-                $winnerModalLabel.text('Edit Entry');
+                clearAllRows();
+                rowCounter = 0;
+                addWinnerRow(data.medal || 'Gold', data);
+
+                $winnerSubmitBtn.html('<i class="mdi mdi-content-save-outline"></i> Update Winner');
+                $winnerModalLabel.text('Edit Winner');
                 suppressEventSync = false;
                 updateMeta();
             }
@@ -641,7 +773,12 @@
                 setCreateMode();
             });
 
-            // Large list search for categories
+            $('#winnerModal').on('shown.bs.modal', function() {
+                if (!isEditMode) {
+                    ensureBaseRows();
+                }
+            });
+
             $('#categoryFilter').select2({
                 placeholder: 'All Categories',
                 allowClear: true,
@@ -649,15 +786,6 @@
                 dropdownParent: $('#winnerModal')
             });
 
-            // Large list search for municipalities
-            $('#municipalitySelect').select2({
-                placeholder: 'Select Municipality',
-                allowClear: true,
-                width: '100%',
-                dropdownParent: $('#winnerModal')
-            });
-
-            // Winner edit handler
             $('.btn-edit-winner').on('click', function() {
                 var $btn = $(this);
                 var data = {
@@ -674,7 +802,6 @@
                 $('#winnerModal').modal('show');
             });
 
-            // Category edit handler
             $('.btn-edit-category').on('click', function() {
                 var id = $(this).data('id');
                 var name = $(this).data('name');
@@ -683,7 +810,10 @@
                 $('#editCategoryModal').modal('show');
             });
 
+            seedDefaultRows();
+
             <?php if (!empty($validation_list) || !empty($error_message)): ?>
+                setCreateMode();
                 $('#winnerModal').modal('show');
             <?php endif; ?>
         });
