@@ -820,6 +820,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="winners-body">
+                                        <?php $allMunicipalities = isset($municipalities_all) ? $municipalities_all : array(); ?>
                                         <?php if (!empty($winners)): ?>
                                             <?php foreach ($winners as $row): ?>
                                                 <tr>
@@ -855,13 +856,29 @@
                                                 </tr>
                                             <?php endforeach; ?>
                                         <?php else: ?>
-                                            <tr class="no-results-row">
-                                                <td colspan="6" class="text-center py-5"
-                                                    style="color: #94a3b8; font-size: 1.1rem;">
-                                                    🏅 No results are available yet. Please wait for the organizers to
-                                                    post the official list of winners.
-                                                </td>
-                                            </tr>
+                                            <?php if (!empty($allMunicipalities)): ?>
+                                                <?php foreach ($allMunicipalities as $mRow): ?>
+                                                    <?php $mName = $mRow->municipality; ?>
+                                                    <tr class="no-results-row">
+                                                        <td class="align-middle text-muted">—</td>
+                                                        <td class="align-middle text-muted">—</td>
+                                                        <td class="align-middle text-muted">—</td>
+                                                        <td class="align-middle text-muted">No winners posted yet</td>
+                                                        <td class="align-middle text-center text-muted">—</td>
+                                                        <td class="align-middle">
+                                                            <?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <tr class="no-results-row">
+                                                    <td colspan="6" class="text-center py-5"
+                                                        style="color: #94a3b8; font-size: 1.1rem;">
+                                                        🏅 No results are available yet. Please wait for the organizers to
+                                                        post the official list of winners.
+                                                    </td>
+                                                </tr>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </tbody>
                                 </table>
@@ -881,7 +898,19 @@
     </section>
 
     <!-- Participating Municipalities Modal -->
-    <?php $tally = isset($municipality_tally) ? $municipality_tally : array(); ?>
+    <?php
+    $tally = isset($municipality_tally) ? $municipality_tally : array();
+    $allMunicipalities = isset($municipalities_all) ? $municipalities_all : array();
+    $groupContext = isset($active_group) ? $active_group : 'ALL';
+    $baseUrl = site_url('provincial');
+    $groupQuery = ($groupContext === 'Elementary' || $groupContext === 'Secondary')
+        ? '&group=' . urlencode($groupContext)
+        : '';
+    $tallyMap = array();
+    foreach ($tally as $row) {
+        $tallyMap[$row->municipality] = $row;
+    }
+    ?>
     <div class="modal fade" id="municipalityModal" tabindex="-1" role="dialog" aria-labelledby="municipalityModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
@@ -892,20 +921,14 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <?php if (!empty($tally)): ?>
-                        <?php
-                        $baseUrl = site_url('provincial');
-                        $groupQuery = ($group === 'Elementary' || $group === 'Secondary')
-                            ? '&group=' . urlencode($group)
-                            : '';
-                        ?>
+                    <?php if (!empty($allMunicipalities)): ?>
                         <div class="municipality-picker" id="municipalityPicker"
                             data-base-url="<?= $baseUrl; ?>" data-group-query="<?= $groupQuery; ?>">
                             <span class="municipality-picker-label">Jump to a municipal dashboard</span>
                             <div class="municipality-picker-row">
                                 <select class="form-control form-control-sm" id="municipalitySelect">
                                     <option value="">Select municipality</option>
-                                    <?php foreach ($tally as $row): ?>
+                                    <?php foreach ($allMunicipalities as $row): ?>
                                         <option value="<?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>">
                                             <?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>
                                         </option>
@@ -929,21 +952,27 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($tally as $row): ?>
+                                    <?php foreach ($allMunicipalities as $row): ?>
                                         <?php
                                         $mName = $row->municipality;
+                                        $stats = isset($tallyMap[$mName]) ? $tallyMap[$mName] : null;
+                                        $hasData = $stats && ((int) $stats->total_medals > 0 || (int) $stats->gold > 0 || (int) $stats->silver > 0 || (int) $stats->bronze > 0);
                                         $filterUrl = $baseUrl . '?municipality=' . urlencode($mName) . $groupQuery;
                                         ?>
                                         <tr>
                                             <td><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td class="text-center"><strong><?= (int) $row->gold; ?></strong></td>
-                                            <td class="text-center"><strong><?= (int) $row->silver; ?></strong></td>
-                                            <td class="text-center"><strong><?= (int) $row->bronze; ?></strong></td>
-                                            <td class="text-center"><?= (int) $row->total_medals; ?></td>
+                                            <td class="text-center"><strong><?= $hasData ? (int) $stats->gold : '—'; ?></strong></td>
+                                            <td class="text-center"><strong><?= $hasData ? (int) $stats->silver : '—'; ?></strong></td>
+                                            <td class="text-center"><strong><?= $hasData ? (int) $stats->bronze : '—'; ?></strong></td>
+                                            <td class="text-center"><?= $hasData ? (int) $stats->total_medals : '—'; ?></td>
                                             <td class="text-right">
-                                                <a href="<?= $filterUrl; ?>" class="btn btn-sm btn-outline-primary">
-                                                    View dashboard
-                                                </a>
+                                                <?php if ($hasData): ?>
+                                                    <a href="<?= $filterUrl; ?>" class="btn btn-sm btn-outline-primary">
+                                                        View dashboard
+                                                    </a>
+                                                <?php else: ?>
+                                                    <span class="text-muted small">No data yet</span>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -969,6 +998,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        window.ALL_MUNICIPALITIES = <?= json_encode(array_values(array_map(function($mun) {
+            return isset($mun->municipality) ? trim($mun->municipality) : '';
+        }, isset($municipalities_all) && is_array($municipalities_all) ? $municipalities_all : array()))); ?>;
         (function($, bootstrap) {
             if (!$) {
                 console.error('jQuery did not load; municipal modal and live updates are disabled.');
@@ -1011,7 +1043,41 @@
             }
 
             function renderWinnersRows(winners) {
-                if (!winners || winners.length === 0) {
+                var hasResults = winners && winners.length > 0;
+
+                if (hasResults) {
+                    var rows = '';
+                    winners.forEach(function(row) {
+                        var medal = row.medal || 'Silver';
+                        var chipClass = 'chip-silver';
+                        if (medal === 'Gold') chipClass = 'chip-gold';
+                        else if (medal === 'Bronze') chipClass = 'chip-bronze';
+
+                        rows += '<tr>' +
+                            '<td class="align-middle">' + $('<div>').text(row.event_name || '').html() + '</td>' +
+                            '<td class="align-middle" style="white-space:nowrap;">' + $('<div>').text(row.event_group || '').html() + '</td>' +
+                            '<td class="align-middle" style="white-space:nowrap;">' + $('<div>').text(row.category || '-').html() + '</td>' +
+                            '<td class="align-middle">' + $('<div>').text(row.full_name || '').html() + '</td>' +
+                            '<td class="align-middle text-center">' +
+                            '<span class="chip-medal ' + chipClass + '">' +
+                            $('<div>').text(medal).html() +
+                            '</span>' +
+                            '</td>' +
+                            '<td class="align-middle">' + $('<div>').text(row.municipality || '').html() + '</td>' +
+                            '</tr>';
+                    });
+                    return rows;
+                }
+
+                var placeholders = [];
+                if (Array.isArray(window.ALL_MUNICIPALITIES)) {
+                    window.ALL_MUNICIPALITIES.forEach(function(name) {
+                        if (!name) return;
+                        placeholders.push(name);
+                    });
+                }
+
+                if (placeholders.length === 0) {
                     return '<tr class="no-results-row">' +
                         '<td colspan="6" class="text-center py-5" style="color:#94a3b8;font-size:1.1rem;">' +
                         '🏅 No results are available yet. Please wait for the organizers to post the official list of winners.' +
@@ -1019,23 +1085,14 @@
                 }
 
                 var rows = '';
-                winners.forEach(function(row) {
-                    var medal = row.medal || 'Silver';
-                    var chipClass = 'chip-silver';
-                    if (medal === 'Gold') chipClass = 'chip-gold';
-                    else if (medal === 'Bronze') chipClass = 'chip-bronze';
-
-                    rows += '<tr>' +
-                        '<td class="align-middle">' + $('<div>').text(row.event_name || '').html() + '</td>' +
-                        '<td class="align-middle" style="white-space:nowrap;">' + $('<div>').text(row.event_group || '').html() + '</td>' +
-                        '<td class="align-middle" style="white-space:nowrap;">' + $('<div>').text(row.category || '-').html() + '</td>' +
-                        '<td class="align-middle">' + $('<div>').text(row.full_name || '').html() + '</td>' +
-                        '<td class="align-middle text-center">' +
-                        '<span class="chip-medal ' + chipClass + '">' +
-                        $('<div>').text(medal).html() +
-                        '</span>' +
-                        '</td>' +
-                        '<td class="align-middle">' + $('<div>').text(row.municipality || '').html() + '</td>' +
+                placeholders.forEach(function(name) {
+                    rows += '<tr class="no-results-row">' +
+                        '<td class="align-middle text-muted">—</td>' +
+                        '<td class="align-middle text-muted">—</td>' +
+                        '<td class="align-middle text-muted">—</td>' +
+                        '<td class="align-middle text-muted">No winners posted yet</td>' +
+                        '<td class="align-middle text-center text-muted">—</td>' +
+                        '<td class="align-middle">' + $('<div>').text(name).html() + '</td>' +
                         '</tr>';
                 });
 

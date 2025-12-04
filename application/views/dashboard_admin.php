@@ -278,9 +278,10 @@
                                         <table class="table table-sm table-hover mb-0" id="eventsTable">
                                             <thead>
                                                 <tr>
-                                                    <th style="width:45%;">Event</th>
-                                                    <th style="width:25%;">Group</th>
-                                                    <th style="width:30%;" class="text-right">Actions</th>
+                                                    <th style="width:40%;">Event</th>
+                                                    <th style="width:20%;">Group</th>
+                                                    <th style="width:20%;">Category</th>
+                                                    <th style="width:20%;" class="text-right">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -289,6 +290,7 @@
                                                         <tr>
                                                             <td><?= htmlspecialchars($event->event_name, ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td><?= htmlspecialchars($event->group_name ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <td><?= htmlspecialchars($event->category_name ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td class="text-right">
                                                                 <button
                                                                     type="button"
@@ -311,7 +313,7 @@
                                                     <?php endforeach; ?>
                                                 <?php else: ?>
                                                     <tr>
-                                                        <td colspan="3" class="text-center text-muted">No events found.</td>
+                                                        <td colspan="4" class="text-center text-muted">No events found.</td>
                                                     </tr>
                                                 <?php endif; ?>
                                             </tbody>
