@@ -1043,7 +1043,7 @@
                             <div class="winners-toolbar">
                                 <div class="winners-toolbar-left">
                                     <h5 class="winners-heading">Winners Table</h5>
-                                    <p class="winners-subtext mb-0">Live medal board (auto-refreshes every 30s).</p>
+                                    <p class="winners-subtext mb-0">Live medal board.</p>
                                 </div>
                                 <div class="winners-actions">
                                     <span class="filter-chip <?= $group === 'ALL' ? 'filter-chip-muted' : 'filter-chip-primary'; ?>">
