@@ -107,6 +107,7 @@ class Provincial extends CI_Controller
         $data['meet'] = $this->MeetSettings_model->get_settings();
         $data['recent_winners'] = $this->Winners_model->get_recent_winners(10);
         $data['event_categories'] = $this->Events_model->get_categories();
+        $data['event_groups'] = $this->Events_model->get_groups();
         $data['events'] = $this->Events_model->get_events_with_meta();
         $data['municipalities'] = $this->Address_model->get_municipalities();
 
@@ -272,6 +273,81 @@ class Provincial extends CI_Controller
 
         $this->Events_model->delete_category($id);
         $this->session->set_flashdata('success', 'Category deleted.');
+        redirect('provincial/admin');
+    }
+
+    // CRUD: create event
+    public function add_event()
+    {
+        $this->form_validation->set_rules('event_name', 'Event Name', 'required|trim');
+        $this->form_validation->set_rules('group_id', 'Group', 'required|integer|greater_than[0]');
+
+        if ($this->form_validation->run()) {
+            $name       = $this->input->post('event_name', TRUE);
+            $groupId    = (int) $this->input->post('group_id', TRUE);
+            $categoryId = $this->input->post('category_id', TRUE);
+            $categoryId = ($categoryId !== '' && $categoryId !== null) ? (int) $categoryId : null;
+            $categoryId = ($categoryId !== null && $categoryId > 0) ? $categoryId : null;
+
+            $this->Events_model->create_event($name, $groupId, $categoryId);
+            $this->session->set_flashdata('success', 'Event added.');
+        } else {
+            $this->session->set_flashdata('error', validation_errors('', ''));
+        }
+
+        redirect('provincial/admin');
+    }
+
+    // CRUD: update event
+    public function update_event()
+    {
+        $this->form_validation->set_rules('event_id', 'Event ID', 'required|integer|greater_than[0]');
+        $this->form_validation->set_rules('event_name', 'Event Name', 'required|trim');
+        $this->form_validation->set_rules('group_id', 'Group', 'required|integer|greater_than[0]');
+
+        if ($this->form_validation->run()) {
+            $eventId    = (int) $this->input->post('event_id', TRUE);
+            $name       = $this->input->post('event_name', TRUE);
+            $groupId    = (int) $this->input->post('group_id', TRUE);
+            $categoryId = $this->input->post('category_id', TRUE);
+            $categoryId = ($categoryId !== '' && $categoryId !== null) ? (int) $categoryId : null;
+            $categoryId = ($categoryId !== null && $categoryId > 0) ? $categoryId : null;
+
+            $existing = $this->Events_model->get_event_details($eventId);
+            if (!$existing) {
+                $this->session->set_flashdata('error', 'Event not found.');
+                redirect('provincial/admin');
+                return;
+            }
+
+            $this->Events_model->update_event($eventId, $name, $groupId, $categoryId);
+            $this->session->set_flashdata('success', 'Event updated.');
+        } else {
+            $this->session->set_flashdata('error', validation_errors('', ''));
+        }
+
+        redirect('provincial/admin');
+    }
+
+    // CRUD: delete event
+    public function delete_event($event_id = null)
+    {
+        $id = (int) $event_id;
+        if ($id <= 0) {
+            $this->session->set_flashdata('error', 'Invalid event.');
+            redirect('provincial/admin');
+            return;
+        }
+
+        $existing = $this->Events_model->get_event_details($id);
+        if (!$existing) {
+            $this->session->set_flashdata('error', 'Event not found.');
+            redirect('provincial/admin');
+            return;
+        }
+
+        $this->Events_model->delete_event($id);
+        $this->session->set_flashdata('success', 'Event deleted.');
         redirect('provincial/admin');
     }
 

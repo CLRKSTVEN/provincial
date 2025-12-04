@@ -14,6 +14,14 @@ class Events_model extends CI_Model
             ->result();
     }
 
+    public function get_groups()
+    {
+        return $this->db
+            ->order_by('group_name', 'ASC')
+            ->get('event_groups')
+            ->result();
+    }
+
     public function get_category($category_id)
     {
         return $this->db
@@ -40,6 +48,33 @@ class Events_model extends CI_Model
     public function delete_category($category_id)
     {
         return $this->db->delete('event_categories', array('category_id' => (int) $category_id));
+    }
+
+    public function create_event($name, $group_id, $category_id = null)
+    {
+        return $this->db->insert('event_master', array(
+            'event_name'  => $name,
+            'group_id'    => (int) $group_id,
+            'category_id' => $category_id !== null ? (int) $category_id : null,
+        ));
+    }
+
+    public function update_event($event_id, $name, $group_id, $category_id = null)
+    {
+        return $this->db->update(
+            'event_master',
+            array(
+                'event_name'  => $name,
+                'group_id'    => (int) $group_id,
+                'category_id' => $category_id !== null ? (int) $category_id : null,
+            ),
+            array('event_id' => (int) $event_id)
+        );
+    }
+
+    public function delete_event($event_id)
+    {
+        return $this->db->delete('event_master', array('event_id' => (int) $event_id));
     }
 
     /**
