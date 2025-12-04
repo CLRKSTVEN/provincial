@@ -907,8 +907,50 @@
         ? '&group=' . urlencode($groupContext)
         : '';
     $tallyMap = array();
+    $normalizeName = function($name) {
+        return strtolower(trim((string) $name));
+    };
     foreach ($tally as $row) {
-        $tallyMap[$row->municipality] = $row;
+        $key = $normalizeName(isset($row->municipality) ? $row->municipality : '');
+        if ($key === '') {
+            continue;
+        }
+        $tallyMap[$key] = $row;
+    }
+    // Order municipalities by medal tally (gold > silver > bronze) and place those with no data after
+    $sortedMunicipalities = is_array($allMunicipalities) ? $allMunicipalities : array();
+    if (!empty($sortedMunicipalities)) {
+        usort($sortedMunicipalities, function($a, $b) use ($tallyMap, $normalizeName) {
+            $aName = isset($a->municipality) ? trim($a->municipality) : '';
+            $bName = isset($b->municipality) ? trim($b->municipality) : '';
+
+            $aKey = $normalizeName($aName);
+            $bKey = $normalizeName($bName);
+
+            $aStats = isset($tallyMap[$aKey]) ? $tallyMap[$aKey] : null;
+            $bStats = isset($tallyMap[$bKey]) ? $tallyMap[$bKey] : null;
+
+            if ($aStats && $bStats) {
+                $goldDiff = (int) $bStats->gold - (int) $aStats->gold;
+                if ($goldDiff !== 0) {
+                    return $goldDiff;
+                }
+                $silverDiff = (int) $bStats->silver - (int) $aStats->silver;
+                if ($silverDiff !== 0) {
+                    return $silverDiff;
+                }
+                $bronzeDiff = (int) $bStats->bronze - (int) $aStats->bronze;
+                if ($bronzeDiff !== 0) {
+                    return $bronzeDiff;
+                }
+            } elseif ($aStats && !$bStats) {
+                return -1;
+            } elseif (!$aStats && $bStats) {
+                return 1;
+            }
+
+            return strcasecmp($aName, $bName);
+        });
     }
     ?>
     <div class="modal fade" id="municipalityModal" tabindex="-1" role="dialog" aria-labelledby="municipalityModalLabel" aria-hidden="true">
@@ -952,10 +994,11 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($allMunicipalities as $row): ?>
+                                    <?php foreach ($sortedMunicipalities as $row): ?>
                                         <?php
                                         $mName = $row->municipality;
-                                        $stats = isset($tallyMap[$mName]) ? $tallyMap[$mName] : null;
+                                        $mKey = $normalizeName($mName);
+                                        $stats = isset($tallyMap[$mKey]) ? $tallyMap[$mKey] : null;
                                         $hasData = $stats && ((int) $stats->total_medals > 0 || (int) $stats->gold > 0 || (int) $stats->silver > 0 || (int) $stats->bronze > 0);
                                         $filterUrl = $baseUrl . '?municipality=' . urlencode($mName) . $groupQuery;
                                         ?>
@@ -1000,11 +1043,15 @@
     <script>
         window.ALL_MUNICIPALITIES = <?= json_encode(array_values(array_map(function($mun) {
             return isset($mun->municipality) ? trim($mun->municipality) : '';
-        }, isset($municipalities_all) && is_array($municipalities_all) ? $municipalities_all : array()))); ?>;
+        }, isset($sortedMunicipalities) && is_array($sortedMunicipalities) ? $sortedMunicipalities : array()))); ?>;
         (function($, bootstrap) {
             if (!$) {
                 console.error('jQuery did not load; municipal modal and live updates are disabled.');
                 return;
+            }
+
+            function normalizeKey(val) {
+                return (val || '').trim().toLowerCase();
             }
 
             function formatDateTime(dtString) {
@@ -1046,8 +1093,78 @@
                 var hasResults = winners && winners.length > 0;
 
                 if (hasResults) {
-                    var rows = '';
+                    var tallies = {};
+                    var medalWeight = {
+                        Gold: 3,
+                        Silver: 2,
+                        Bronze: 1
+                    };
+
                     winners.forEach(function(row) {
+                        var key = normalizeKey(row.municipality);
+                        if (!key) return;
+                        if (!tallies[key]) {
+                            tallies[key] = {
+                                gold: 0,
+                                silver: 0,
+                                bronze: 0,
+                                total: 0
+                            };
+                        }
+                        var medalLower = (row.medal || '').toLowerCase();
+                        if (medalLower === 'gold') tallies[key].gold++;
+                        else if (medalLower === 'silver') tallies[key].silver++;
+                        else if (medalLower === 'bronze') tallies[key].bronze++;
+                        tallies[key].total++;
+                    });
+
+                    var sortedWinners = winners.slice().sort(function(a, b) {
+                        var aKey = normalizeKey(a.municipality);
+                        var bKey = normalizeKey(b.municipality);
+                        var aStats = tallies[aKey] || {
+                            gold: 0,
+                            silver: 0,
+                            bronze: 0,
+                            total: 0
+                        };
+                        var bStats = tallies[bKey] || {
+                            gold: 0,
+                            silver: 0,
+                            bronze: 0,
+                            total: 0
+                        };
+
+                        var diff = bStats.gold - aStats.gold;
+                        if (diff !== 0) return diff;
+                        diff = bStats.silver - aStats.silver;
+                        if (diff !== 0) return diff;
+                        diff = bStats.bronze - aStats.bronze;
+                        if (diff !== 0) return diff;
+                        diff = bStats.total - aStats.total;
+                        if (diff !== 0) return diff;
+
+                        var medalDiff = (medalWeight[b.medal] || 0) - (medalWeight[a.medal] || 0);
+                        if (medalDiff !== 0) return medalDiff;
+
+                        var aEvent = (a.event_name || '').toLowerCase();
+                        var bEvent = (b.event_name || '').toLowerCase();
+                        if (aEvent !== bEvent) return aEvent.localeCompare(bEvent);
+
+                        var aGroup = (a.event_group || '').toLowerCase();
+                        var bGroup = (b.event_group || '').toLowerCase();
+                        if (aGroup !== bGroup) return aGroup.localeCompare(bGroup);
+
+                        var aCat = (a.category || '').toLowerCase();
+                        var bCat = (b.category || '').toLowerCase();
+                        if (aCat !== bCat) return aCat.localeCompare(bCat);
+
+                        var aName = (a.full_name || '').toLowerCase();
+                        var bName = (b.full_name || '').toLowerCase();
+                        return aName.localeCompare(bName);
+                    });
+
+                    var rows = '';
+                    sortedWinners.forEach(function(row) {
                         var medal = row.medal || 'Silver';
                         var chipClass = 'chip-silver';
                         if (medal === 'Gold') chipClass = 'chip-gold';

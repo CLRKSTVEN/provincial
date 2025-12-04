@@ -27,29 +27,57 @@ class Winners_model extends CI_Model
 
     public function get_winners_list($event_group = null, $municipality = null)
     {
-        $this->db->select("
-        event_name,
-        event_group,
-        category,
-        CONCAT(last_name, ', ', first_name, ' ', COALESCE(middle_name, '')) AS full_name,
-        medal,
-        municipality,
-        created_at
-    ", FALSE);
-        $this->db->from('winners');
+        // Build a medal tally subquery so we can rank rows by municipality performance first
+        $tallyBuilder = $this->db->select("
+            municipality,
+            SUM(medal = 'Gold')   AS gold_count,
+            SUM(medal = 'Silver') AS silver_count,
+            SUM(medal = 'Bronze') AS bronze_count,
+            COUNT(*)              AS total_medals
+        ", FALSE)->from('winners');
 
         if ($event_group === 'Elementary' || $event_group === 'Secondary') {
-            $this->db->where('event_group', $event_group);
+            $tallyBuilder->where('event_group', $event_group);
         }
         if (!empty($municipality)) {
-            $this->db->where('municipality', $municipality);
+            $tallyBuilder->where('municipality', $municipality);
         }
 
-        // Order: Medal (Gold > Silver > Bronze), Event, Group, Category, Name
-        $this->db->order_by("FIELD(medal, 'Gold', 'Silver', 'Bronze')", '', FALSE);
-        $this->db->order_by('event_name', 'ASC');
-        $this->db->order_by('event_group', 'ASC');
-        $this->db->order_by('category', 'ASC');
+        $tallyBuilder->group_by('municipality');
+        $medalTallySql = $tallyBuilder->get_compiled_select();
+
+        $this->db->select("
+        w.event_name,
+        w.event_group,
+        w.category,
+        CONCAT(w.last_name, ', ', w.first_name, ' ', COALESCE(w.middle_name, '')) AS full_name,
+        w.medal,
+        w.municipality,
+        w.created_at,
+        m.gold_count,
+        m.silver_count,
+        m.bronze_count,
+        m.total_medals
+    ", FALSE);
+        $this->db->from('winners w');
+        $this->db->join("({$medalTallySql}) m", 'm.municipality = w.municipality', 'left');
+
+        if ($event_group === 'Elementary' || $event_group === 'Secondary') {
+            $this->db->where('w.event_group', $event_group);
+        }
+        if (!empty($municipality)) {
+            $this->db->where('w.municipality', $municipality);
+        }
+
+        // Order: municipality medal tally, then medal, then event/group/category/name
+        $this->db->order_by('m.gold_count', 'DESC');
+        $this->db->order_by('m.silver_count', 'DESC');
+        $this->db->order_by('m.bronze_count', 'DESC');
+        $this->db->order_by('m.total_medals', 'DESC');
+        $this->db->order_by("FIELD(w.medal, 'Gold', 'Silver', 'Bronze')", '', FALSE);
+        $this->db->order_by('w.event_name', 'ASC');
+        $this->db->order_by('w.event_group', 'ASC');
+        $this->db->order_by('w.category', 'ASC');
         $this->db->order_by('full_name', 'ASC');
 
         return $this->db->get()->result();
