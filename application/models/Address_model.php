@@ -8,7 +8,7 @@ class Address_model extends CI_Model
      */
     public function get_municipalities()
     {
-        $this->db->select('MIN(AddID) AS address_id, City AS municipality');
+        $this->db->select('MIN(AddID) AS address_id, City AS municipality, MAX(logo) AS logo');
         $this->db->from('settings_address');
         $this->db->where('City IS NOT NULL');
         $this->db->where('City !=', '');
@@ -37,20 +37,22 @@ class Address_model extends CI_Model
         return $this->db->insert('settings_address', array(
             'Province' => '',
             'City'     => $city,
-            'Brgy'     => ''
+            'Brgy'     => '',
+            'logo'     => null,
         ));
     }
 
     /**
      * Update a city name across all matching records.
      */
-    public function update_city($currentCity, $newCity)
+    public function update_city($currentCity, $newCity, $logo = null)
     {
-        return $this->db->update(
-            'settings_address',
-            array('City' => $newCity),
-            array('City' => $currentCity)
-        );
+        $data = array('City' => $newCity);
+        if ($logo !== null && $logo !== '') {
+            $data['logo'] = $logo;
+        }
+
+        return $this->db->update('settings_address', $data, array('City' => $currentCity));
     }
 
     /**
@@ -59,5 +61,21 @@ class Address_model extends CI_Model
     public function delete_city($city)
     {
         return $this->db->delete('settings_address', array('City' => $city));
+    }
+
+    /**
+     * Save/replace a logo for a given city.
+     */
+    public function set_logo($city, $fileName)
+    {
+        if (trim($city) === '') {
+            return false;
+        }
+
+        return $this->db->update(
+            'settings_address',
+            array('logo' => $fileName),
+            array('City' => $city)
+        );
     }
 }

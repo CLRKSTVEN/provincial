@@ -95,7 +95,7 @@
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <div>
                                             <h5 class="card-title mb-0">Teams list</h5>
-                                            <small class="text-muted">Manage team names.</small>
+                                            <small class="text-muted">Manage team names and logos.</small>
                                         </div>
                                         <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#addMunicipalityModal">
                                             <i class="mdi mdi-plus"></i> Add Team
@@ -106,6 +106,7 @@
                                         <table class="table table-hover mb-0" id="municipalityTable">
                                             <thead>
                                                 <tr>
+                                                    <th style="width:80px;">Logo</th>
                                                     <th> Team </th>
                                                     <th class="text-right" style="width: 140px;">Actions</th>
                                                 </tr>
@@ -114,7 +115,15 @@
                                                 <?php if (!empty($municipalities)): ?>
                                                     <?php foreach ($municipalities as $row): ?>
                                                         <?php $city = isset($row->municipality) ? $row->municipality : ''; ?>
+                                                        <?php $logo = isset($row->logo) ? $row->logo : ''; ?>
                                                         <tr>
+                                                            <td class="align-middle">
+                                                                <?php if (!empty($logo)): ?>
+                                                                    <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($city, ENT_QUOTES, 'UTF-8'); ?> logo" style="height:38px;width:auto;border-radius:6px;">
+                                                                <?php else: ?>
+                                                                    <span class="text-muted">—</span>
+                                                                <?php endif; ?>
+                                                            </td>
                                                             <td><?= htmlspecialchars($city, ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td class="text-right">
                                                                 <button
@@ -173,11 +182,16 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <?= form_open('provincial/add_municipality'); ?>
+                <?= form_open_multipart('provincial/add_municipality'); ?>
                 <div class="modal-body">
                     <div class="form-group">
                         <label> Team </label>
                         <input type="text" name="city" class="form-control" required placeholder="e.g. Team Alpha">
+                    </div>
+                    <div class="form-group">
+                        <label>Logo</label>
+                        <input type="file" name="logo" class="form-control-file" accept="image/*">
+                        <small class="form-text text-muted">PNG/JPG/WebP up to 2MB.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -199,12 +213,17 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <?= form_open('provincial/update_municipality'); ?>
+                <?= form_open_multipart('provincial/update_municipality'); ?>
                 <div class="modal-body">
                     <input type="hidden" name="current_city" id="editCurrentCity">
                     <div class="form-group">
                         <label> Team </label>
                         <input type="text" name="city" id="editCityName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Logo</label>
+                        <input type="file" name="logo" class="form-control-file" accept="image/*">
+                        <small class="form-text text-muted">Leave empty to keep the current logo.</small>
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -40,6 +40,18 @@ class Provincial extends CI_Controller
             'meet'         => $this->MeetSettings_model->get_settings(), // NEW
         );
 
+        // Map municipality => logo for quick lookup in views
+        $logoMap = array();
+        if (!empty($data['municipalities_all'])) {
+            foreach ($data['municipalities_all'] as $m) {
+                $name = isset($m->municipality) ? $m->municipality : '';
+                if ($name !== '') {
+                    $logoMap[$name] = isset($m->logo) ? $m->logo : '';
+                }
+            }
+        }
+        $data['municipality_logos'] = $logoMap;
+
         $this->load->view('provincial_landing', $data);
     }
 
@@ -240,7 +252,17 @@ class Provincial extends CI_Controller
             if ($this->Address_model->city_exists($city)) {
                 $this->session->set_flashdata('error', 'Municipality already exists.');
             } else {
+                $upload = $this->handle_logo_upload('logo');
+                if ($upload['error']) {
+                    $this->session->set_flashdata('error', $upload['message']);
+                    redirect('provincial/municipalities');
+                    return;
+                }
+
                 $this->Address_model->add_city($city);
+                if ($upload['file']) {
+                    $this->Address_model->set_logo($city, $upload['file']);
+                }
                 $this->session->set_flashdata('success', 'Municipality added.');
             }
         } else {
@@ -272,13 +294,21 @@ class Provincial extends CI_Controller
                 return;
             }
 
-            if ($current === $city) {
+            $upload = $this->handle_logo_upload('logo');
+            if ($upload['error']) {
+                $this->session->set_flashdata('error', $upload['message']);
+                redirect('provincial/municipalities');
+                return;
+            }
+
+            // If name unchanged and no logo uploaded, nothing to do
+            if ($current === $city && empty($upload['file'])) {
                 $this->session->set_flashdata('success', 'No changes to save.');
                 redirect('provincial/municipalities');
                 return;
             }
 
-            $this->Address_model->update_city($current, $city);
+            $this->Address_model->update_city($current, $city, $upload['file']);
             $this->session->set_flashdata('success', 'Municipality updated.');
         } else {
             $this->session->set_flashdata('error', validation_errors('', ''));
@@ -665,5 +695,34 @@ class Provincial extends CI_Controller
             redirect('login');
             exit;
         }
+    }
+
+    /**
+     * Handle optional team logo upload; returns ['error'=>bool,'message'=>string,'file'=>string|null]
+     */
+    private function handle_logo_upload($field)
+    {
+        if (empty($_FILES[$field]['name'])) {
+            return array('error' => false, 'message' => '', 'file' => null);
+        }
+
+        $config = array(
+            'upload_path'   => FCPATH . 'upload/team_logos',
+            'allowed_types' => 'gif|jpg|jpeg|png|webp',
+            'encrypt_name'  => true,
+            'max_size'      => 2048,
+        );
+
+        if (!is_dir($config['upload_path'])) {
+            @mkdir($config['upload_path'], 0775, true);
+        }
+
+        $this->load->library('upload', $config);
+        if (!$this->upload->do_upload($field)) {
+            return array('error' => true, 'message' => $this->upload->display_errors('', ''), 'file' => null);
+        }
+
+        $data = $this->upload->data();
+        return array('error' => false, 'message' => '', 'file' => $data['file_name']);
     }
 }

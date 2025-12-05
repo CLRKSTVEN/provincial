@@ -1019,148 +1019,254 @@
                         $lastUpdate     = ($overview && $overview->last_update)
                             ? date('M d, Y h:i A', strtotime($overview->last_update))
                             : 'No data yet';
-                        ?>
-                        <div class="row summary-row">
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="summary-card clickable" id="municipalityCard"
-                                    data-toggle="modal" data-target="#municipalityModal"
-                                    data-bs-toggle="modal" data-bs-target="#municipalityModal"
-                                    role="button" tabindex="0">
-                                    <div class="summary-label">Participating Teams</div>
-                                    <div class="summary-value" id="stat-municipalities"><?= $municipalities; ?></div>
-                                    <div class="summary-sub">Total registered teams</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="summary-card">
-                                    <div class="summary-label">Events Recorded</div>
-                                    <div class="summary-value" id="stat-events"><?= $events; ?></div>
-                                    <div class="summary-sub">completed with reported winners</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="summary-card">
-                                    <div class="summary-label">Total Medals</div>
-                                    <div class="summary-value">
-                                        <span id="stat-total-medals"><?= $totalMedals; ?></span>
-                                        <span id="stat-medal-breakdown"
-                                            style="font-size:0.9rem;font-weight:700;color:#2563eb;">
-                                            (<?= $goldTotal; ?>G · <?= $silverTotal; ?>S · <?= $bronzeTotal; ?>B)
-                                        </span>
-                                    </div>
-                                    <div class="summary-sub">
-                                        Last update:
-                                        <span id="stat-last-update"><?= $lastUpdate; ?></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Winners Table -->
-                        <div class="winners-table-wrapper">
-                            <div class="winners-toolbar">
-                                <div class="winners-toolbar-left">
-                                    <h5 class="winners-heading">Winners Table</h5>
-                                    <p class="winners-subtext mb-0">Live medal board.</p>
+                        $tally = isset($municipality_tally) ? $municipality_tally : array();
+                        $allMunicipalities = isset($municipalities_all) ? $municipalities_all : array();
+                        $logoMap = isset($municipality_logos) ? $municipality_logos : array();
+
+                        $normalizeName = function ($name) {
+                            return strtolower(trim((string) $name));
+                        };
+                        $tallyMap = array();
+                        foreach ($tally as $row) {
+                            $key = $normalizeName(isset($row->municipality) ? $row->municipality : '');
+                            if ($key === '') continue;
+                            $tallyMap[$key] = $row;
+                        }
+                        ?>
+
+                        <?php if (empty($activeMunicipality)): ?>
+                            <div class="row summary-row">
+                                <div class="col-md-4 mb-3 mb-md-0">
+                                    <div class="summary-card clickable" id="municipalityCard"
+                                        data-toggle="modal" data-target="#municipalityModal"
+                                        data-bs-toggle="modal" data-bs-target="#municipalityModal"
+                                        role="button" tabindex="0">
+                                        <div class="summary-label">Participating Teams</div>
+                                        <div class="summary-value" id="stat-municipalities"><?= $municipalities; ?></div>
+                                        <div class="summary-sub">Total registered teams</div>
+                                    </div>
                                 </div>
-                                <div class="winners-actions">
-                                    <span class="filter-chip <?= $group === 'ALL' ? 'filter-chip-muted' : 'filter-chip-primary'; ?>">
-                                        <?= $group === 'ALL'
-                                            ? 'Group: All'
-                                            : 'Group: ' . htmlspecialchars($group, ENT_QUOTES, 'UTF-8'); ?>
-                                    </span>
-                                    <?php if (!empty($activeMunicipality)): ?>
-                                        <span class="filter-chip filter-chip-accent">
-                                            Team: <?= htmlspecialchars($activeMunicipality, ENT_QUOTES, 'UTF-8'); ?>
-                                        </span>
-                                        <a href="<?= site_url('provincial' . ($group !== 'ALL' ? '?group=' . urlencode($group) : '')); ?>"
-                                            class="btn btn-sm btn-outline-danger clear-filter-btn">
-                                            Clear filter
-                                        </a>
-                                    <?php else: ?>
-                                        <span class="filter-chip filter-chip-muted">
-                                            Team: All
-                                        </span>
-                                    <?php endif; ?>
+                                <div class="col-md-4 mb-3 mb-md-0">
+                                    <div class="summary-card">
+                                        <div class="summary-label">Events Recorded</div>
+                                        <div class="summary-value" id="stat-events"><?= $events; ?></div>
+                                        <div class="summary-sub">completed with reported winners</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="summary-card">
+                                        <div class="summary-label">Total Medals</div>
+                                        <div class="summary-value">
+                                            <span id="stat-total-medals"><?= $totalMedals; ?></span>
+                                            <span id="stat-medal-breakdown"
+                                                style="font-size:0.9rem;font-weight:700;color:#2563eb;">
+                                                (<span class="medal-filter" data-medal="Gold" style="cursor:pointer;"><?= $goldTotal; ?>G</span>
+                                                · <span class="medal-filter" data-medal="Silver" style="cursor:pointer;"><?= $silverTotal; ?>S</span>
+                                                · <span class="medal-filter" data-medal="Bronze" style="cursor:pointer;"><?= $bronzeTotal; ?>B</span>)
+                                            </span>
+                                        </div>
+                                        <div class="summary-sub">
+                                            Last update:
+                                            <span id="stat-last-update"><?= $lastUpdate; ?></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover mb-0 winners-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Event</th>
-                                            <th>Group</th>
-                                            <th>Category</th>
-                                            <th>Name</th>
-                                            <th class="text-center">Medal</th>
-                                            <th>Team</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="winners-body">
-                                        <?php $allMunicipalities = isset($municipalities_all) ? $municipalities_all : array(); ?>
-                                        <?php if (!empty($winners)): ?>
-                                            <?php foreach ($winners as $row): ?>
-                                                <tr>
-                                                    <td class="align-middle">
-                                                        <?= htmlspecialchars($row->event_name, ENT_QUOTES, 'UTF-8'); ?>
-                                                    </td>
-                                                    <td class="align-middle" style="white-space: nowrap;">
-                                                        <?= htmlspecialchars($row->event_group, ENT_QUOTES, 'UTF-8'); ?>
-                                                    </td>
-                                                    <td class="align-middle" style="white-space: nowrap;">
-                                                        <?= htmlspecialchars($row->category ?? '-', ENT_QUOTES, 'UTF-8'); ?>
-                                                    </td>
-                                                    <td class="align-middle">
-                                                        <?= htmlspecialchars($row->full_name, ENT_QUOTES, 'UTF-8'); ?>
-                                                    </td>
-                                                    <td class="align-middle text-center">
-                                                        <?php
-                                                        $medal = $row->medal;
-                                                        $chipClass = 'chip-silver';
-                                                        if ($medal === 'Gold') {
-                                                            $chipClass = 'chip-gold';
-                                                        } elseif ($medal === 'Bronze') {
-                                                            $chipClass = 'chip-bronze';
-                                                        }
-                                                        ?>
-                                                        <span class="chip-medal <?= $chipClass; ?>">
-                                                            <?= htmlspecialchars($medal, ENT_QUOTES, 'UTF-8'); ?>
-                                                        </span>
-                                                    </td>
-                                                    <td class="align-middle">
-                                                        <?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        <?php else: ?>
-                                            <?php if (!empty($allMunicipalities)): ?>
-                                                <?php foreach ($allMunicipalities as $mRow): ?>
-                                                    <?php $mName = $mRow->municipality; ?>
-                                                    <tr class="no-results-row">
-                                                        <td class="align-middle text-muted">—</td>
-                                                        <td class="align-middle text-muted">—</td>
-                                                        <td class="align-middle text-muted">—</td>
-                                                        <td class="align-middle text-muted">No winners posted yet</td>
-                                                        <td class="align-middle text-center text-muted">—</td>
+
+                            <!-- Participating Teams (default view) -->
+                            <?php
+                            $teamRows = is_array($allMunicipalities) ? $allMunicipalities : array();
+                            if (!empty($teamRows)) {
+                                usort($teamRows, function ($a, $b) use ($tallyMap, $normalizeName) {
+                                    $aName = isset($a->municipality) ? trim($a->municipality) : '';
+                                    $bName = isset($b->municipality) ? trim($b->municipality) : '';
+                                    $aKey = $normalizeName($aName);
+                                    $bKey = $normalizeName($bName);
+                                    $aStats = $tallyMap[$aKey] ?? null;
+                                    $bStats = $tallyMap[$bKey] ?? null;
+                                    $aGold = $aStats ? (int) $aStats->gold : 0;
+                                    $bGold = $bStats ? (int) $bStats->gold : 0;
+                                    if ($aGold !== $bGold) return $bGold - $aGold;
+                                    $aSilver = $aStats ? (int) $aStats->silver : 0;
+                                    $bSilver = $bStats ? (int) $bStats->silver : 0;
+                                    if ($aSilver !== $bSilver) return $bSilver - $aSilver;
+                                    $aBronze = $aStats ? (int) $aStats->bronze : 0;
+                                    $bBronze = $bStats ? (int) $bStats->bronze : 0;
+                                    if ($aBronze !== $bBronze) return $bBronze - $aBronze;
+                                    $aTotal = $aStats ? (int) $aStats->total_medals : 0;
+                                    $bTotal = $bStats ? (int) $bStats->total_medals : 0;
+                                    if ($aTotal !== $bTotal) return $bTotal - $aTotal;
+                                    return strcasecmp($aName, $bName);
+                                });
+                            }
+                            $groupParam = ($group === 'ALL') ? '' : '&group=' . urlencode($group);
+                            ?>
+                            <div class="winners-table-wrapper mt-4">
+                                <div class="winners-toolbar">
+                                    <div class="winners-toolbar-left">
+                                        <h5 class="winners-heading">Live Tally</h5>
+                                        <p class="winners-subtext mb-0">Tap a medal count or view a team dashboard.</p>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover mb-0 winners-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Team</th>
+                                                <th class="text-center">Gold</th>
+                                                <th class="text-center">Silver</th>
+                                                <th class="text-center">Bronze</th>
+                                                <th class="text-center">Total</th>
+                                                <th class="text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php if (!empty($teamRows)): ?>
+                                                <?php foreach ($teamRows as $row): ?>
+                                                    <?php
+                                                    $mName = isset($row->municipality) ? $row->municipality : '';
+                                                    $mKey = $normalizeName($mName);
+                                                    $stats = $tallyMap[$mKey] ?? null;
+                                                    $hasData = $stats && ((int)$stats->total_medals > 0 || (int)$stats->gold > 0 || (int)$stats->silver > 0 || (int)$stats->bronze > 0);
+                                                    $gold = $stats ? (int) $stats->gold : 0;
+                                                    $silver = $stats ? (int) $stats->silver : 0;
+                                                    $bronze = $stats ? (int) $stats->bronze : 0;
+                                                    $total = $stats ? (int) $stats->total_medals : 0;
+                                                    $logo = isset($logoMap[$mName]) ? $logoMap[$mName] : '';
+                                                    $filterUrl = site_url('provincial?municipality=' . urlencode($mName) . $groupParam);
+                                                    ?>
+                                                    <tr>
                                                         <td class="align-middle">
-                                                            <?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?>
+                                                            <div class="d-flex align-items-center" style="gap:10px;">
+                                                                <?php if (!empty($logo)): ?>
+                                                                    <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" style="height:36px;width:auto;border-radius:6px;">
+                                                                <?php endif; ?>
+                                                                <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-center font-weight-bold">
+                                                            <?php if ($hasData): ?>
+                                                                <a href="<?= $filterUrl; ?>" class="medal-filter-link" data-medal="Gold"><?= $gold; ?></a>
+                                                                <?php else: ?>—<?php endif; ?>
+                                                        </td>
+                                                        <td class="text-center font-weight-bold">
+                                                            <?php if ($hasData): ?>
+                                                                <a href="<?= $filterUrl; ?>" class="medal-filter-link" data-medal="Silver"><?= $silver; ?></a>
+                                                                <?php else: ?>—<?php endif; ?>
+                                                        </td>
+                                                        <td class="text-center font-weight-bold">
+                                                            <?php if ($hasData): ?>
+                                                                <a href="<?= $filterUrl; ?>" class="medal-filter-link" data-medal="Bronze"><?= $bronze; ?></a>
+                                                                <?php else: ?>—<?php endif; ?>
+                                                        </td>
+                                                        <td class="text-center font-weight-bold">
+                                                            <?php if ($hasData): ?>
+                                                                <a href="<?= $filterUrl; ?>" class="medal-filter-link" data-medal="All"><?= $total; ?></a>
+                                                                <?php else: ?>—<?php endif; ?>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <?php if ($hasData): ?>
+                                                                <a class="btn btn-sm btn-outline-primary" href="<?= $filterUrl; ?>">View Team</a>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">No data yet</span>
+                                                            <?php endif; ?>
                                                         </td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
                                                 <tr class="no-results-row">
-                                                    <td colspan="6" class="text-center py-5"
-                                                        style="color: #9ca3af; font-size: 1.05rem;">
-                                                        🏅 No results are available yet. Please wait for the organizers to
-                                                        post the official list of winners.
+                                                    <td colspan="6" class="text-center py-4 text-muted">No teams found.</td>
+                                                </tr>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <?php
+                            $selectedName = $activeMunicipality;
+                            $selectedKey = $normalizeName($selectedName);
+                            $teamStats = $tallyMap[$selectedKey] ?? null;
+                            $teamGold = $teamStats ? (int) $teamStats->gold : 0;
+                            $teamSilver = $teamStats ? (int) $teamStats->silver : 0;
+                            $teamBronze = $teamStats ? (int) $teamStats->bronze : 0;
+                            $teamTotal = $teamStats ? (int) $teamStats->total_medals : 0;
+                            $teamLogo = isset($logoMap[$selectedName]) ? $logoMap[$selectedName] : '';
+                            $backUrl = site_url('provincial' . ($group === 'ALL' ? '' : '?group=' . urlencode($group)));
+                            ?>
+
+                            <div class="winners-table-wrapper mt-4">
+                                <div class="winners-toolbar">
+                                    <div class="winners-toolbar-left">
+                                        <h5 class="winners-heading">Team Dashboard</h5>
+                                        <p class="winners-subtext mb-0">
+                                            Viewing all encoded events for <strong><?= htmlspecialchars($selectedName, ENT_QUOTES, 'UTF-8'); ?></strong>.
+                                        </p>
+                                    </div>
+                                    <div class="winners-actions">
+                                        <div class="filter-chip filter-chip-primary medal-filter" data-medal="Gold">Gold: <?= $teamGold; ?></div>
+                                        <div class="filter-chip filter-chip-accent medal-filter" data-medal="Silver">Silver: <?= $teamSilver; ?></div>
+                                        <div class="filter-chip filter-chip-muted medal-filter" data-medal="Bronze">Bronze: <?= $teamBronze; ?></div>
+                                        <div class="filter-chip" id="clearMedalFilter" style="cursor:pointer;">Show All</div>
+                                        <a class="btn btn-sm btn-light" href="<?= $backUrl; ?>">← Back to all teams</a>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover mb-0 winners-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="min-width:180px;">Event</th>
+                                                <th class="text-center">Group</th>
+                                                <th class="text-center">Category</th>
+                                                <th>Name</th>
+                                                <th class="text-center">Medal</th>
+                                                <th class="text-center">School</th>
+                                                <th class="text-center">Coach</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="winners-body">
+                                            <?php if (!empty($winners)): ?>
+                                                <?php foreach ($winners as $w): ?>
+                                                    <?php
+                                                    $medal = isset($w->medal) ? $w->medal : 'Silver';
+                                                    $chipClass = 'chip-silver';
+                                                    if ($medal === 'Gold') $chipClass = 'chip-gold';
+                                                    elseif ($medal === 'Bronze') $chipClass = 'chip-bronze';
+                                                    $fullNameParts = array_filter(array($w->first_name ?? '', $w->middle_name ?? '', $w->last_name ?? ''));
+                                                    $fullName = implode(' ', $fullNameParts);
+                                                    ?>
+                                                    <tr data-medal="<?= htmlspecialchars($medal, ENT_QUOTES, 'UTF-8'); ?>">
+                                                        <td class="align-middle">
+                                                            <div class="d-flex align-items-center" style="gap:8px;">
+                                                                <?php if (!empty($teamLogo)): ?>
+                                                                    <img src="<?= base_url('upload/team_logos/' . $teamLogo); ?>" alt="<?= htmlspecialchars($selectedName, ENT_QUOTES, 'UTF-8'); ?> logo" style="height:30px;width:auto;border-radius:6px;">
+                                                                <?php endif; ?>
+                                                                <span><?= htmlspecialchars($w->event_name ?? '', ENT_QUOTES, 'UTF-8'); ?></span>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-center"><?= htmlspecialchars($w->event_group ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td class="align-middle text-center"><?= htmlspecialchars($w->category ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td class="align-middle"><?= htmlspecialchars($fullName, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td class="align-middle text-center">
+                                                            <span class="chip-medal <?= $chipClass; ?>"><?= htmlspecialchars($medal, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                        </td>
+                                                        <td class="align-middle text-center"><?= htmlspecialchars($w->school ?? '—', ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td class="align-middle text-center"><?= htmlspecialchars($w->coach ?? '—', ENT_QUOTES, 'UTF-8'); ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <tr class="no-results-row">
+                                                    <td colspan="7" class="text-center py-5 text-muted">
+                                                        No encoded events for this team yet.
                                                     </td>
                                                 </tr>
                                             <?php endif; ?>
-                                        <?php endif; ?>
-                                    </tbody>
-                                </table>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
+                        <?php endif; ?>
 
                         <div class="footer-note">
                             <span>
@@ -1254,7 +1360,7 @@
                                     <?php endforeach; ?>
                                 </select>
                                 <button type="button" class="btn btn-primary btn-sm" id="municipalityViewButton">
-                                    View dashboard
+                                    View Team
                                 </button>
                             </div>
                         </div>
@@ -1274,13 +1380,21 @@
                                     <?php foreach ($sortedMunicipalities as $row): ?>
                                         <?php
                                         $mName = $row->municipality;
+                                        $logo = isset($row->logo) ? $row->logo : '';
                                         $mKey = $normalizeName($mName);
                                         $stats = isset($tallyMap[$mKey]) ? $tallyMap[$mKey] : null;
                                         $hasData = $stats && ((int) $stats->total_medals > 0 || (int) $stats->gold > 0 || (int) $stats->silver > 0 || (int) $stats->bronze > 0);
                                         $filterUrl = $baseUrl . '?municipality=' . urlencode($mName) . $groupQuery;
                                         ?>
                                         <tr>
-                                            <td><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td class="align-middle">
+                                                <div class="d-flex align-items-center" style="gap:10px;">
+                                                    <?php if (!empty($logo)): ?>
+                                                        <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" style="height:38px;width:auto;border-radius:6px;">
+                                                    <?php endif; ?>
+                                                    <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                </div>
+                                            </td>
                                             <td class="text-center"><strong><?= $hasData ? (int) $stats->gold : '—'; ?></strong></td>
                                             <td class="text-center"><strong><?= $hasData ? (int) $stats->silver : '—'; ?></strong></td>
                                             <td class="text-center"><strong><?= $hasData ? (int) $stats->bronze : '—'; ?></strong></td>
@@ -1288,7 +1402,7 @@
                                             <td class="text-right">
                                                 <?php if ($hasData): ?>
                                                     <a href="<?= $filterUrl; ?>" class="btn btn-sm btn-outline-primary">
-                                                        View dashboard
+                                                        View Team
                                                     </a>
                                                 <?php else: ?>
                                                     <span class="text-muted small">No data yet</span>
@@ -1318,6 +1432,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        const ACTIVE_MUNICIPALITY = <?= json_encode($activeMunicipality); ?>;
         window.ALL_MUNICIPALITIES = <?= json_encode(array_values(array_map(function ($mun) {
                                         return isset($mun->municipality) ? trim($mun->municipality) : '';
                                     }, isset($sortedMunicipalities) && is_array($sortedMunicipalities) ? $sortedMunicipalities : array()))); ?>;
@@ -1494,6 +1609,9 @@
             }
 
             function refreshResults() {
+                if (ACTIVE_MUNICIPALITY) {
+                    return; // do not override the focused team view with live refresh rows
+                }
                 var TEAM_COUNT = <?= $teamsTotal; ?>;
 
                 $.getJSON('<?= site_url('provincial/live_results'); ?>', function(resp) {
@@ -1561,6 +1679,37 @@
                 }
             });
         })(window.jQuery, window.bootstrap);
+
+        // Medal filter on winners table: click totals to show rows with that medal; click again to reset.
+        (function($) {
+            var activeMedal = null;
+            var $rows = $('#winners-body').find('tr');
+            var $clearBtn = $('#clearMedalFilter');
+
+            function applyMedalFilter() {
+                if (!activeMedal) {
+                    $rows.show();
+                    return;
+                }
+                $rows.each(function() {
+                    var medal = ($(this).data('medal') || '').toString();
+                    $(this).toggle(medal === activeMedal);
+                });
+            }
+
+            $('.medal-filter').on('click', function() {
+                var medal = ($(this).data('medal') || '').toString();
+                activeMedal = (activeMedal === medal) ? null : medal;
+                applyMedalFilter();
+            });
+
+            if ($clearBtn.length) {
+                $clearBtn.on('click', function() {
+                    activeMedal = null;
+                    applyMedalFilter();
+                });
+            }
+        })(window.jQuery);
     </script>
 
 </body>
