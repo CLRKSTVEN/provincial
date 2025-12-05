@@ -1003,10 +1003,12 @@
 
             function applyEventsFilter() {
                 if (eventsTable) {
-                    eventsTable.column(3).visible(showWinnersOnly, true);
-                    eventsTable.order(showWinnersOnly ? [[3, 'desc']] : [[1, 'asc'], [0, 'asc']]).draw();
-                    // ensure detail visibility after draw
-                    updateWinnerVisibility();
+                    eventsTable.column(3).visible(showWinnersOnly);
+                    if (showWinnersOnly) {
+                        eventsTable.order([[3, 'desc']]).draw();
+                    } else {
+                        eventsTable.order([[1, 'asc'], [0, 'asc']]).draw();
+                    }
                     return;
                 }
 
@@ -1061,12 +1063,18 @@
                     applyEventsFilter();
                     if (eventsTable) {
                         eventsTable.columns.adjust();
+                        if (showWinnersOnly) {
+                            eventsTable.order([[3, 'desc']]).draw();
+                        }
                     }
                 });
             }
 
             updateWinnerVisibility();
             applyEventsFilter();
+            if (showWinnersOnly && eventsTable) {
+                eventsTable.order([[3, 'desc']]).draw();
+            }
 
             <?php if (!empty($validation_list) || !empty($error_message)): ?>
                 setCreateMode();
