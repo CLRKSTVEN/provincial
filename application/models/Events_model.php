@@ -29,6 +29,42 @@ class Events_model extends CI_Model
             ->row();
     }
 
+    public function get_category_by_name($name)
+    {
+        $name = trim($name);
+        if ($name === '') {
+            return null;
+        }
+
+        return $this->db
+            ->where('LOWER(category_name)', strtolower($name))
+            ->get('event_categories')
+            ->row();
+    }
+
+    public function ensure_category($name)
+    {
+        $name = trim($name);
+        if ($name === '') {
+            return null;
+        }
+
+        $existing = $this->get_category_by_name($name);
+        if ($existing) {
+            return (int) $existing->category_id;
+        }
+
+        $this->create_category($name);
+        return (int) $this->db->insert_id();
+    }
+
+    public function get_group($group_id)
+    {
+        return $this->db
+            ->get_where('event_groups', array('group_id' => (int) $group_id))
+            ->row();
+    }
+
     public function create_category($name)
     {
         return $this->db->insert('event_categories', array(

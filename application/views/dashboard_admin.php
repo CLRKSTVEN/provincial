@@ -427,7 +427,7 @@
                                                                         data-id="<?= (int) $event->event_id; ?>"
                                                                         data-name="<?= htmlspecialchars($event->event_name, ENT_QUOTES, 'UTF-8'); ?>"
                                                                         data-group-id="<?= $event->group_id !== null ? (int) $event->group_id : ''; ?>"
-                                                                        data-category-id="<?= $event->category_id !== null ? (int) $event->category_id : ''; ?>">
+                                                                        data-category-name="<?= htmlspecialchars($event->category_name ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                                                         <i class="mdi mdi-pencil"></i>
                                                                     </button>
                                                                     <form action="<?= site_url('provincial/delete_event/' . (int) $event->event_id); ?>"
@@ -505,7 +505,7 @@
                     </div>
 
                     <div class="form-group mb-2">
-                        <label>Subtitle (optional)</label>
+                        <label>Subtitle</label>
                         <textarea name="subtitle" class="form-control form-control-sm" rows="2"
                             placeholder="Shown under the title on the landing page"><?= htmlspecialchars($subtitle, ENT_QUOTES, 'UTF-8'); ?></textarea>
                     </div>
@@ -548,15 +548,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Category (optional)</label>
-                        <select name="category_id" id="eventCategory" class="form-control">
-                            <option value="">-- No Category --</option>
-                            <?php foreach ($event_categories_list as $category): ?>
-                                <option value="<?= (int) $category->category_id; ?>">
-                                    <?= htmlspecialchars($category->category_name, ENT_QUOTES, 'UTF-8'); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <label>Category</label>
+                        <input type="text" name="category_name" id="eventCategory" class="form-control" placeholder="Type a category name">
                         <small class="form-text text-muted">Leave blank if the event is uncategorized.</small>
                     </div>
                 </div>
@@ -586,38 +579,53 @@
                         <label>Event <span class="text-danger">*</span></label>
                         <select name="event_id" id="eventSelect" class="form-control" required>
                             <option value="">-- Select Event --</option>
-                            <?php foreach ($events_list as $event): ?>
-                                <?php
-                                $parts = array();
-                                if (!empty($event->group_name)) {
-                                    $parts[] = $event->group_name;
+                            <?php
+                            $eventSeen = array();
+                            foreach ($events_list as $event):
+                                $eventName = trim($event->event_name);
+                                $categoryName = trim($event->category_name ?? '');
+                                $labelKey = strtolower($eventName . '|' . $categoryName);
+                                if (isset($eventSeen[$labelKey])) {
+                                    continue; // avoid duplicate event/category combos
                                 }
-                                $parts[] = $event->event_name;
-                                if (!empty($event->category_name)) {
-                                    $parts[] = $event->category_name;
+                                $eventSeen[$labelKey] = true;
+                                $label = $eventName;
+                                if ($categoryName !== '' && stripos($eventName, $categoryName) === false) {
+                                    $label .= ' – ' . $categoryName;
                                 }
-                                $label = implode(' – ', $parts);
-                                ?>
+                            ?>
                                 <option value="<?= (int) $event->event_id; ?>"
-                                    data-category-id="<?= $event->category_id !== null ? (int) $event->category_id : ''; ?>"
-                                    data-category-name="<?= htmlspecialchars($event->category_name ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                     data-group-name="<?= htmlspecialchars($event->group_name ?? '', ENT_QUOTES, 'UTF-8'); ?>"
-                                    <?= set_select('event_id', $event->event_id); ?>>
+                                    data-category-name="<?= htmlspecialchars($event->category_name ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                     <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <small class="form-text text-muted">Select the event; category auto-fills below.</small>
+                        <small class="form-text text-muted">Select the event; group and category auto-fill below.</small>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group col-md-6">
-                            <label>Group – auto-set from event</label>
-                            <input type="text" class="form-control" id="selectedGroup" value="Select an event" readonly>
+                            <label>Group</label>
+                            <select name="group_id" id="winnerGroupSelect" class="form-control">
+                                <option value="">-- Select Group --</option>
+                                <?php foreach ($event_groups_list as $group): ?>
+                                    <option value="<?= (int) $group->group_id; ?>">
+                                        <?= htmlspecialchars($group->group_name, ENT_QUOTES, 'UTF-8'); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="form-group col-md-6">
-                            <label>Category – auto-set from event</label>
-                            <input type="text" class="form-control" id="selectedCategory" value="Select an event" readonly>
+                            <label>Category</label>
+                            <select name="category_id" id="winnerCategorySelect" class="form-control">
+                                <option value="">-- Select Category --</option>
+                                <?php foreach ($event_categories_list as $category): ?>
+                                    <option value="<?= (int) $category->category_id; ?>">
+                                        <?= htmlspecialchars($category->category_name, ENT_QUOTES, 'UTF-8'); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
 
@@ -752,8 +760,8 @@
             var updateEventAction = "<?= site_url('provincial/update_event'); ?>";
             var eventsTable = null;
             var $eventSelect = $('#eventSelect');
-            var $groupDisplay = $('#selectedGroup');
-            var $categoryDisplay = $('#selectedCategory');
+            var $winnerGroupSelect = $('#winnerGroupSelect');
+            var $winnerCategorySelect = $('#winnerCategorySelect');
             var $winnerForm = $('#winnerForm');
             var $winnerSubmitBtn = $('#winnerSubmitBtn');
             var $winnerModalLabel = $('#winnerModalLabel');
@@ -773,25 +781,6 @@
             var rowCounter = 0;
             var isEditMode = false;
 
-            function updateMeta() {
-                var $selected = $eventSelect.find('option:selected');
-                if (!$selected.val()) {
-                    $groupDisplay.val('Select an event');
-                    $categoryDisplay.val('Select an event');
-                    return;
-                }
-
-                var groupName = $selected.data('group-name') || 'Unspecified';
-                var categoryName = $selected.data('category-name') || 'Unspecified';
-
-                $groupDisplay.val(groupName);
-                $categoryDisplay.val(categoryName);
-            }
-
-            $eventSelect.on('change', updateMeta);
-
-            updateMeta();
-
             function setEventCreateMode() {
                 $eventForm.attr('action', createEventAction);
                 $eventModalLabel.text('Add Event');
@@ -809,7 +798,7 @@
                 $eventIdField.val(data.id || '');
                 $eventNameInput.val(data.name || '');
                 $eventGroupSelect.val(data.group_id || '');
-                $eventCategorySelect.val(data.category_id || '');
+                $eventCategorySelect.val(data.category_name || '');
             }
 
             function clearAllRows() {
@@ -919,10 +908,11 @@
                 $winnerForm.attr('action', createAction);
                 $('#winnerIdField').val('');
                 $eventSelect.val('').trigger('change');
+                $winnerGroupSelect.val('');
+                $winnerCategorySelect.val('');
                 $winnerSubmitBtn.html('<i class="mdi mdi-content-save-outline"></i> Save Winners');
                 $winnerModalLabel.text('Add Winners');
                 seedDefaultRows();
-                updateMeta();
             }
 
             function setEditMode(data) {
@@ -930,6 +920,8 @@
                 $winnerForm.attr('action', updateAction);
                 $('#winnerIdField').val(data.id || '');
                 $eventSelect.val(data.event_id || '').trigger('change');
+                $winnerGroupSelect.val('');
+                $winnerCategorySelect.val('');
 
                 clearAllRows();
                 rowCounter = 0;
@@ -937,7 +929,6 @@
 
                 $winnerSubmitBtn.html('<i class="mdi mdi-content-save-outline"></i> Update Winner');
                 $winnerModalLabel.text('Edit Winner');
-                updateMeta();
             }
 
             $('#openWinnerModal').on('click', function() {
@@ -978,7 +969,7 @@
                     id: $btn.data('id'),
                     name: $btn.data('name'),
                     group_id: ($btn.data('group-id') || '').toString(),
-                    category_id: ($btn.data('category-id') || '').toString()
+                    category_name: ($btn.data('category-name') || '').toString()
                 };
                 setEventEditMode(data);
                 $('#eventModal').modal('show');
@@ -990,10 +981,14 @@
                 eventsTable = $('#eventsTable').DataTable({
                     pageLength: 10,
                     lengthChange: false,
-                    order: [[1, 'asc'], [0, 'asc']],
-                    columnDefs: [
-                        { targets: -1, orderable: false, searchable: false }
+                    order: [
+                        [0, 'asc']
                     ],
+                    columnDefs: [{
+                        targets: -1,
+                        orderable: false,
+                        searchable: false
+                    }],
                     autoWidth: false
                 });
                 // hide winners column by default
@@ -1025,9 +1020,14 @@
                 if (eventsTable) {
                     eventsTable.column(3).visible(showWinnersOnly);
                     if (showWinnersOnly) {
-                        eventsTable.order([[3, 'desc']]).draw();
+                        eventsTable.order([
+                            [3, 'desc']
+                        ]).draw();
                     } else {
-                        eventsTable.order([[1, 'asc'], [0, 'asc']]).draw();
+                        eventsTable.order([
+                            [1, 'asc'],
+                            [0, 'asc']
+                        ]).draw();
                     }
                     return;
                 }
@@ -1084,7 +1084,9 @@
                     if (eventsTable) {
                         eventsTable.columns.adjust();
                         if (showWinnersOnly) {
-                            eventsTable.order([[3, 'desc']]).draw();
+                            eventsTable.order([
+                                [3, 'desc']
+                            ]).draw();
                         }
                     }
                 });
@@ -1093,7 +1095,9 @@
             updateWinnerVisibility();
             applyEventsFilter();
             if (showWinnersOnly && eventsTable) {
-                eventsTable.order([[3, 'desc']]).draw();
+                eventsTable.order([
+                    [3, 'desc']
+                ]).draw();
             }
 
             <?php if (!empty($validation_list) || !empty($error_message)): ?>

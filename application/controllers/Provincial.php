@@ -80,11 +80,30 @@ class Provincial extends CI_Controller
                 }
 
                 foreach ($winnerRows as $row) {
+                    $groupId = (int) $this->input->post('group_id', TRUE);
+                    $categoryId = (int) $this->input->post('category_id', TRUE);
+                    $groupName = $event->group_name ?? 'Unspecified';
+                    $categoryName = $event->category_name;
+
+                    if ($groupId > 0) {
+                        $groupRow = $this->Events_model->get_group($groupId);
+                        if ($groupRow && !empty($groupRow->group_name)) {
+                            $groupName = $groupRow->group_name;
+                        }
+                    }
+
+                    if ($categoryId > 0) {
+                        $categoryRow = $this->Events_model->get_category((int) $categoryId);
+                        if ($categoryRow && !empty($categoryRow->category_name)) {
+                            $categoryName = $categoryRow->category_name;
+                        }
+                    }
+
                     $insert = array(
                         'event_id'    => $event->event_id,
                         'event_name'  => $event->event_name,
-                        'event_group' => $event->group_name ?? 'Unspecified',
-                        'category'    => $event->category_name,
+                        'event_group' => $groupName,
+                        'category'    => $categoryName,
                         'first_name'  => $row['first_name'],
                         'middle_name' => $row['middle_name'],
                         'last_name'   => $row['last_name'],
@@ -305,6 +324,8 @@ class Provincial extends CI_Controller
                 'municipality' => $this->input->post('municipality', TRUE),
                 'school'       => $this->input->post('school', TRUE),
                 'coach'        => $this->input->post('coach', TRUE),
+                'group_id'     => $this->input->post('group_id', TRUE),
+                'category_id'  => $this->input->post('category_id', TRUE),
             ));
         }
 
@@ -346,12 +367,31 @@ class Provincial extends CI_Controller
                 return;
             }
 
+            $groupId = (int) $this->input->post('group_id', TRUE);
+            $categoryId = (int) $this->input->post('category_id', TRUE);
+            $groupName = $event->group_name ?? 'Unspecified';
+            $categoryName = $event->category_name;
+
+            if ($groupId > 0) {
+                $groupRow = $this->Events_model->get_group($groupId);
+                if ($groupRow && !empty($groupRow->group_name)) {
+                    $groupName = $groupRow->group_name;
+                }
+            }
+
+            if ($categoryId > 0) {
+                $categoryRow = $this->Events_model->get_category((int) $categoryId);
+                if ($categoryRow && !empty($categoryRow->category_name)) {
+                    $categoryName = $categoryRow->category_name;
+                }
+            }
+
             $payload = $winnerRows[0];
             $update = array(
                 'event_id'    => $event->event_id,
                 'event_name'  => $event->event_name,
-                'event_group' => $event->group_name ?? 'Unspecified',
-                'category'    => $event->category_name,
+                'event_group' => $groupName,
+                'category'    => $categoryName,
                 'first_name'   => $payload['first_name'],
                 'middle_name'  => $payload['middle_name'],
                 'last_name'    => $payload['last_name'],
@@ -460,13 +500,13 @@ class Provincial extends CI_Controller
     {
         $this->form_validation->set_rules('event_name', 'Event Name', 'required|trim');
         $this->form_validation->set_rules('group_id', 'Group', 'required|integer|greater_than[0]');
+        $this->form_validation->set_rules('category_name', 'Category', 'trim');
 
         if ($this->form_validation->run()) {
             $name       = $this->input->post('event_name', TRUE);
             $groupId    = (int) $this->input->post('group_id', TRUE);
-            $categoryId = $this->input->post('category_id', TRUE);
-            $categoryId = ($categoryId !== '' && $categoryId !== null) ? (int) $categoryId : null;
-            $categoryId = ($categoryId !== null && $categoryId > 0) ? $categoryId : null;
+            $categoryName = $this->input->post('category_name', TRUE);
+            $categoryId = $categoryName !== '' ? $this->Events_model->ensure_category($categoryName) : null;
 
             $this->Events_model->create_event($name, $groupId, $categoryId);
             $this->session->set_flashdata('success', 'Event added.');
@@ -483,14 +523,14 @@ class Provincial extends CI_Controller
         $this->form_validation->set_rules('event_id', 'Event ID', 'required|integer|greater_than[0]');
         $this->form_validation->set_rules('event_name', 'Event Name', 'required|trim');
         $this->form_validation->set_rules('group_id', 'Group', 'required|integer|greater_than[0]');
+        $this->form_validation->set_rules('category_name', 'Category', 'trim');
 
         if ($this->form_validation->run()) {
             $eventId    = (int) $this->input->post('event_id', TRUE);
             $name       = $this->input->post('event_name', TRUE);
             $groupId    = (int) $this->input->post('group_id', TRUE);
-            $categoryId = $this->input->post('category_id', TRUE);
-            $categoryId = ($categoryId !== '' && $categoryId !== null) ? (int) $categoryId : null;
-            $categoryId = ($categoryId !== null && $categoryId > 0) ? $categoryId : null;
+            $categoryName = $this->input->post('category_name', TRUE);
+            $categoryId = $categoryName !== '' ? $this->Events_model->ensure_category($categoryName) : null;
 
             $existing = $this->Events_model->get_event_details($eventId);
             if (!$existing) {
