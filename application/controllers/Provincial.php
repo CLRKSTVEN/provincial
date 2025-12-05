@@ -115,6 +115,98 @@ class Provincial extends CI_Controller
         $this->load->view('dashboard_admin', $data);
     }
 
+    /**
+     * Municipality manager – city-only CRUD.
+     */
+    public function municipalities()
+    {
+        $this->require_login();
+
+        $data['meet'] = $this->MeetSettings_model->get_settings();
+        $data['municipalities'] = $this->Address_model->get_municipalities();
+
+        $this->load->view('municipalities_admin', $data);
+    }
+
+    public function add_municipality()
+    {
+        $this->require_login();
+        $this->form_validation->set_rules('city', 'Municipality/City', 'required|trim');
+
+        if ($this->form_validation->run()) {
+            $city = trim($this->input->post('city', TRUE));
+
+            if ($this->Address_model->city_exists($city)) {
+                $this->session->set_flashdata('error', 'Municipality already exists.');
+            } else {
+                $this->Address_model->add_city($city);
+                $this->session->set_flashdata('success', 'Municipality added.');
+            }
+        } else {
+            $this->session->set_flashdata('error', validation_errors('', ''));
+        }
+
+        redirect('provincial/municipalities');
+    }
+
+    public function update_municipality()
+    {
+        $this->require_login();
+        $this->form_validation->set_rules('current_city', 'Current Municipality', 'required|trim');
+        $this->form_validation->set_rules('city', 'Municipality/City', 'required|trim');
+
+        if ($this->form_validation->run()) {
+            $current = trim($this->input->post('current_city', TRUE));
+            $city    = trim($this->input->post('city', TRUE));
+
+            if (!$this->Address_model->city_exists($current)) {
+                $this->session->set_flashdata('error', 'Municipality not found.');
+                redirect('provincial/municipalities');
+                return;
+            }
+
+            if ($this->Address_model->city_exists($city) && strcasecmp($current, $city) !== 0) {
+                $this->session->set_flashdata('error', 'Another entry already uses that municipality.');
+                redirect('provincial/municipalities');
+                return;
+            }
+
+            if ($current === $city) {
+                $this->session->set_flashdata('success', 'No changes to save.');
+                redirect('provincial/municipalities');
+                return;
+            }
+
+            $this->Address_model->update_city($current, $city);
+            $this->session->set_flashdata('success', 'Municipality updated.');
+        } else {
+            $this->session->set_flashdata('error', validation_errors('', ''));
+        }
+
+        redirect('provincial/municipalities');
+    }
+
+    public function delete_municipality()
+    {
+        $this->require_login();
+        $this->form_validation->set_rules('city', 'Municipality/City', 'required|trim');
+
+        if ($this->form_validation->run()) {
+            $city = trim($this->input->post('city', TRUE));
+
+            if (!$this->Address_model->city_exists($city)) {
+                $this->session->set_flashdata('error', 'Municipality not found.');
+            } else {
+                $this->Address_model->delete_city($city);
+                $this->session->set_flashdata('success', 'Municipality deleted.');
+            }
+        } else {
+            $this->session->set_flashdata('error', validation_errors('', ''));
+        }
+
+        redirect('provincial/municipalities');
+    }
+
     public function update_winner()
     {
         $this->form_validation->set_rules('winner_id', 'Winner ID', 'required|integer|greater_than[0]');
@@ -431,5 +523,17 @@ class Provincial extends CI_Controller
         }
 
         redirect('provincial/admin');
+    }
+
+    /**
+     * Require an authenticated session before accessing admin endpoints.
+     */
+    private function require_login()
+    {
+        if (!$this->session->userdata('logged_in')) {
+            $this->session->set_flashdata('error', 'Please log in to continue.');
+            redirect('login');
+            exit;
+        }
     }
 }

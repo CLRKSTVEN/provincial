@@ -17,6 +17,7 @@
             $currentUri = trim(uri_string(), '/');
             $segment1   = strtolower($this->uri->segment(1) ?? '');
             $segment2   = strtolower($this->uri->segment(2) ?? '');
+            $municipalityActive = stripos($currentUri, trim('provincial/municipalities', '/')) === 0;
             ?>
             <div id="sidebar-menu">
                 <ul class="metismenu" id="side-menu">
@@ -127,6 +128,13 @@
                         </a>
                     </li>
 
+                    <li class="<?= $municipalityActive ? 'mm-active' : ''; ?>">
+                        <a href="<?= base_url('provincial/municipalities'); ?>" class="waves-effect">
+                            <i class="mdi mdi-city"></i>
+                            <span> Municipalities </span>
+                        </a>
+                    </li>
+
                     <!-- To Do (keep visible) -->
                     <!-- <li>
                 <a href="javascript: void(0);" class="waves-effect">
@@ -182,10 +190,12 @@
                             $sectionPrefixes  = ['Page/manageSections', 'Page/addSection', 'Page/editSection'];
                             $isSectionActive  = $manageMatch($sectionPrefixes);
                             $isUserActive     = stripos($currentUri, trim('Page/userAccounts', '/')) === 0;
+                            $isMunicipalityActive = stripos($currentUri, trim('provincial/municipalities', '/')) === 0;
 
                             $courseLinkClass  = $isCourseActive ? 'active' : '';
                             $sectionLinkClass = $isSectionActive ? 'active' : '';
                             $userLinkClass    = $isUserActive ? 'active' : '';
+                            $municipalityLinkClass = $isMunicipalityActive ? 'active' : '';
                             ?>
                             <li>
                                 <a class="<?= $courseLinkClass; ?>" href="<?= base_url('Settings/Department'); ?>"> Course </a>
@@ -193,6 +203,9 @@
                             <!-- Manage Sections -->
                             <li>
                                 <a class="<?= $sectionLinkClass; ?>" href="<?= base_url('Page/manageSections'); ?>"> Sections </a>
+                            </li>
+                            <li>
+                                <a class="<?= $municipalityLinkClass; ?>" href="<?= base_url('provincial/municipalities'); ?>"> Municipalities </a>
                             </li>
                             <li>
                                 <a class="<?= $userLinkClass; ?>" href="<?= base_url('Page/userAccounts'); ?>"> Admin Accounts </a>
@@ -1209,10 +1222,17 @@
             <div id="sidebar-menu">
                 <ul class="metismenu" id="side-menu">
                     <li class="menu-title">Navigation</li>
+                    <?php $municipalityActive = stripos(trim(uri_string(), '/'), trim('provincial/municipalities', '/')) === 0; ?>
                     <li>
                         <a href="<?= base_url('Page/admin'); ?>" class="waves-effect">
                             <i class="bi bi-house-door"></i>
                             <span> Dashboard </span>
+                        </a>
+                    </li>
+                    <li class="<?= $municipalityActive ? 'mm-active' : ''; ?>">
+                        <a href="<?= base_url('provincial/municipalities'); ?>" class="waves-effect">
+                            <i class="mdi mdi-city"></i>
+                            <span> Municipalities </span>
                         </a>
                     </li>
                     <li>
