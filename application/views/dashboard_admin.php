@@ -60,6 +60,46 @@
         line-height: 1;
     }
 
+    .event-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 10px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.78rem;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    .event-status-badge.filled {
+        background: #ecfdf3;
+        color: #166534;
+        border-color: #bbf7d0;
+    }
+
+    .event-status-badge.empty {
+        background: #f8fafc;
+        color: #64748b;
+        border-color: #e2e8f0;
+    }
+
+    .event-status-meta {
+        display: block;
+        font-size: 0.78rem;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    /* When toggled, always show winner details and hide placeholders */
+    #eventsTable.table-show-winners .event-status-detail {
+        display: inline !important;
+    }
+
+    #eventsTable.table-show-winners .event-status-placeholder {
+        display: none !important;
+    }
+
     .table thead th {
         text-transform: uppercase;
         font-size: 0.78rem;
@@ -314,28 +354,61 @@
                                             <h5 class="card-title mb-0">Events</h5>
                                             <small class="text-muted">Add, edit, or delete events; categories auto-fill when selecting an event.</small>
                                         </div>
-                                        <button class="btn btn-sm btn-primary" id="openAddEventModal" data-toggle="modal" data-target="#eventModal">
-                                            <i class="mdi mdi-plus"></i> Add Event
-                                        </button>
+                                        <div class="d-flex align-items-center" style="gap: 8px;">
+                                            <button type="button" class="btn btn-outline-success btn-sm" id="filterWinnersBtn">
+                                                Show with winners
+                                            </button>
+                                            <button class="btn btn-sm btn-primary" id="openAddEventModal" data-toggle="modal" data-target="#eventModal">
+                                                <i class="mdi mdi-plus"></i> Add Event
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div class="table-responsive">
                                         <table class="table table-sm table-hover mb-0" id="eventsTable">
                                             <thead>
                                                 <tr>
-                                                    <th style="width:40%;">Event</th>
-                                                    <th style="width:20%;">Group</th>
-                                                    <th style="width:20%;">Category</th>
+                                                    <th style="width:32%;">Event</th>
+                                                    <th style="width:18%;">Group</th>
+                                                    <th style="width:18%;">Category</th>
+                                                    <th style="width:20%;" class="winner-col">Winners</th>
                                                     <th style="width:120px;" class="text-right">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php if (!empty($events_list)): ?>
+                                                    <?php $eventIndex = 0; ?>
                                                     <?php foreach ($events_list as $event): ?>
-                                                        <tr>
+                                                        <tr data-winners="<?= isset($event->winners_count) ? (int) $event->winners_count : 0; ?>"
+                                                            data-has-winner="<?= isset($event->winners_count) && (int) $event->winners_count > 0 ? 1 : 0; ?>"
+                                                            data-original-index="<?= $eventIndex; ?>">
                                                             <td><?= htmlspecialchars($event->event_name, ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td><?= htmlspecialchars($event->group_name ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td><?= htmlspecialchars($event->category_name ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <?php
+                                                            $winnerCount = isset($event->winners_count) ? (int) $event->winners_count : 0;
+                                                            $goldCount = isset($event->gold_count) ? (int) $event->gold_count : 0;
+                                                            $silverCount = isset($event->silver_count) ? (int) $event->silver_count : 0;
+                                                            $bronzeCount = isset($event->bronze_count) ? (int) $event->bronze_count : 0;
+                                                            $hasWinners = $winnerCount > 0;
+                                                            ?>
+                                                            <td class="align-middle winner-col event-winner-cell"
+                                                                data-winners="<?= $winnerCount; ?>"
+                                                                data-has-winner="<?= $hasWinners ? 1 : 0; ?>"
+                                                                data-order="<?= $winnerCount; ?>">
+                                                                <span class="event-status-detail" style="display:none;">
+                                                                    <?php if ($hasWinners): ?>
+                                                                        <span class="event-status-badge filled">
+                                                                            <i class="mdi mdi-check-circle-outline"></i>
+                                                                            Has winners
+                                                                        </span>
+                                                                        <span class="event-status-meta">
+                                                                            <?= $winnerCount; ?> posted · <?= $goldCount; ?>G / <?= $silverCount; ?>S / <?= $bronzeCount; ?>B
+                                                                        </span>
+                                                                    <?php endif; ?>
+                                                                </span>
+                                                                <span class="event-status-placeholder text-muted small">—</span>
+                                                            </td>
                                                             <td class="text-right align-middle">
                                                                 <span class="table-actions">
                                                                     <button
@@ -365,6 +438,7 @@
                                                                 </span>
                                                             </td>
                                                         </tr>
+                                                        <?php $eventIndex++; ?>
                                                     <?php endforeach; ?>
                                                 <?php else: ?>
                                                     <tr>
@@ -670,6 +744,7 @@
             var updateAction = "<?= site_url('provincial/update_winner'); ?>";
             var createEventAction = "<?= site_url('provincial/add_event'); ?>";
             var updateEventAction = "<?= site_url('provincial/update_event'); ?>";
+            var eventsTable = null;
             var $eventSelect = $('#eventSelect');
             var $groupDisplay = $('#selectedGroup');
             var $categoryDisplay = $('#selectedCategory');
@@ -892,7 +967,7 @@
             seedDefaultRows();
 
             if ($.fn.DataTable) {
-                $('#eventsTable').DataTable({
+                eventsTable = $('#eventsTable').DataTable({
                     pageLength: 10,
                     lengthChange: false,
                     order: [[1, 'asc'], [0, 'asc']],
@@ -901,7 +976,97 @@
                     ],
                     autoWidth: false
                 });
+                // hide winners column by default
+                eventsTable.column(3).visible(false);
+                eventsTable.on('draw', function() {
+                    updateWinnerVisibility();
+                });
+            } else {
+                $('#eventsTable .winner-col').hide();
             }
+
+            var showWinnersOnly = false;
+            var $filterWinnersBtn = $('#filterWinnersBtn');
+
+            function updateWinnerVisibility() {
+                $('.event-winner-cell').each(function() {
+                    var has = parseInt($(this).data('has-winner'), 10) === 1 || (parseInt($(this).data('winners'), 10) || 0) > 0;
+                    if (showWinnersOnly && has) {
+                        $(this).find('.event-status-detail').show();
+                        $(this).find('.event-status-placeholder').hide();
+                    } else {
+                        $(this).find('.event-status-detail').hide();
+                        $(this).find('.event-status-placeholder').show();
+                    }
+                });
+            }
+
+            function applyEventsFilter() {
+                if (eventsTable) {
+                    eventsTable.column(3).visible(showWinnersOnly, true);
+                    eventsTable.order(showWinnersOnly ? [[3, 'desc']] : [[1, 'asc'], [0, 'asc']]).draw();
+                    // ensure detail visibility after draw
+                    updateWinnerVisibility();
+                    return;
+                }
+
+                var $tbody = $('#eventsTable tbody');
+                var rows = $tbody.children('tr').get();
+
+                rows.sort(function(a, b) {
+                    if (showWinnersOnly) {
+                        var bw = parseInt($(b).data('winners'), 10) || 0;
+                        var aw = parseInt($(a).data('winners'), 10) || 0;
+                        var diff = bw - aw;
+                        if (diff !== 0) return diff;
+                    }
+                    var ai = parseInt($(a).data('original-index'), 10) || 0;
+                    var bi = parseInt($(b).data('original-index'), 10) || 0;
+                    return ai - bi;
+                });
+
+                $tbody.empty();
+                rows.forEach(function(row) {
+                    var winners = parseInt($(row).data('winners'), 10) || 0;
+                    if (showWinnersOnly && winners === 0) return;
+                    $tbody.append(row);
+                });
+
+                $('#eventsTable .winner-col').toggle(showWinnersOnly);
+            }
+
+            if ($filterWinnersBtn.length) {
+                if ($.fn.dataTable && $.fn.dataTable.ext && $.fn.dataTable.ext.search) {
+                    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                        if (!eventsTable || settings.nTable !== $('#eventsTable')[0]) {
+                            return true;
+                        }
+                        if (!showWinnersOnly) {
+                            return true;
+                        }
+                        var node = eventsTable.row(dataIndex).node();
+                        var winners = parseInt($(node).getAttribute('data-winners'), 10) || 0;
+                        return winners > 0;
+                    });
+                }
+
+                $filterWinnersBtn.on('click', function() {
+                    showWinnersOnly = !showWinnersOnly;
+                    $(this)
+                        .toggleClass('btn-outline-success', !showWinnersOnly)
+                        .toggleClass('btn-success', showWinnersOnly)
+                        .text(showWinnersOnly ? 'Show all events' : 'Show with winners');
+                    $('#eventsTable').toggleClass('table-show-winners', showWinnersOnly);
+                    updateWinnerVisibility();
+                    applyEventsFilter();
+                    if (eventsTable) {
+                        eventsTable.columns.adjust();
+                    }
+                });
+            }
+
+            updateWinnerVisibility();
+            applyEventsFilter();
 
             <?php if (!empty($validation_list) || !empty($error_message)): ?>
                 setCreateMode();

@@ -109,7 +109,7 @@ class Provincial extends CI_Controller
         $data['recent_winners'] = $this->Winners_model->get_recent_winners(10);
         $data['event_categories'] = $this->Events_model->get_categories();
         $data['event_groups'] = $this->Events_model->get_groups();
-        $data['events'] = $this->Events_model->get_events_with_meta();
+        $data['events'] = $this->Events_model->get_events_with_meta_and_counts();
         $data['municipalities'] = $this->Address_model->get_municipalities();
 
         $this->load->view('dashboard_admin', $data);

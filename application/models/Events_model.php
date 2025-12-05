@@ -100,6 +100,41 @@ class Events_model extends CI_Model
     }
 
     /**
+     * Fetch events with group/category and winner tallies.
+     */
+    public function get_events_with_meta_and_counts()
+    {
+        $this->db->select('
+            em.event_id,
+            em.event_name,
+            em.group_id,
+            em.category_id,
+            eg.group_name,
+            ec.category_name,
+            COUNT(w.id) AS winners_count,
+            SUM(w.medal = "Gold")   AS gold_count,
+            SUM(w.medal = "Silver") AS silver_count,
+            SUM(w.medal = "Bronze") AS bronze_count
+        ', false);
+        $this->db->from('event_master em');
+        $this->db->join('event_groups eg', 'eg.group_id = em.group_id', 'left');
+        $this->db->join('event_categories ec', 'ec.category_id = em.category_id', 'left');
+        $this->db->join('winners w', 'w.event_id = em.event_id', 'left');
+        $this->db->group_by(array(
+            'em.event_id',
+            'em.event_name',
+            'em.group_id',
+            'em.category_id',
+            'eg.group_name',
+            'ec.category_name'
+        ));
+        $this->db->order_by('eg.group_name', 'ASC');
+        $this->db->order_by('em.event_name', 'ASC');
+
+        return $this->db->get()->result();
+    }
+
+    /**
      * Fetch a single event with its group/category names.
      */
     public function get_event_details($event_id)
