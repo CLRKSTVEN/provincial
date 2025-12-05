@@ -1009,7 +1009,8 @@
                         <?php
                         $overview       = isset($overview) ? $overview : null;
                         $activeMunicipality = isset($active_municipality) ? $active_municipality : '';
-                        $municipalities = $overview ? (int)$overview->municipalities : 0;
+                        $teamsTotal     = isset($municipalities_all) && is_array($municipalities_all) ? count($municipalities_all) : 0;
+                        $municipalities = $teamsTotal;
                         $events         = $overview ? (int)$overview->events : 0;
                         $goldTotal      = $overview ? (int)$overview->gold : 0;
                         $silverTotal    = $overview ? (int)$overview->silver : 0;
@@ -1027,7 +1028,7 @@
                                     role="button" tabindex="0">
                                     <div class="summary-label">Participating Teams</div>
                                     <div class="summary-value" id="stat-municipalities"><?= $municipalities; ?></div>
-                                    <div class="summary-sub">with at least one officially recorded medal</div>
+                                    <div class="summary-sub">Total registered teams</div>
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3 mb-md-0">
@@ -1493,12 +1494,14 @@
             }
 
             function refreshResults() {
+                var TEAM_COUNT = <?= $teamsTotal; ?>;
+
                 $.getJSON('<?= site_url('provincial/live_results'); ?>', function(resp) {
                     if (!resp) return;
 
                     if (resp.overview) {
                         var o = resp.overview;
-                        $('#stat-municipalities').text(o.municipalities || 0);
+                        $('#stat-municipalities').text(TEAM_COUNT || o.municipalities || 0);
                         $('#stat-events').text(o.events || 0);
 
                         var gold = o.gold || 0;
