@@ -95,7 +95,7 @@
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <div>
                                             <h5 class="card-title mb-0">Municipality list</h5>
-                                            <small class="text-muted">Only the city/municipality name is shown here. Province and barangay fields remain hidden.</small>
+                                            <small class="text-muted">Manage Municipalities.</small>
                                         </div>
                                         <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#addMunicipalityModal">
                                             <i class="mdi mdi-plus"></i> Add Municipality
@@ -106,7 +106,7 @@
                                         <table class="table table-hover mb-0" id="municipalityTable">
                                             <thead>
                                                 <tr>
-                                                    <th>Municipality / City</th>
+                                                    <th> Municipality </th>
                                                     <th class="text-right" style="width: 140px;">Actions</th>
                                                 </tr>
                                             </thead>
@@ -173,9 +173,8 @@
                 <?= form_open('provincial/add_municipality'); ?>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>Municipality / City</label>
-                        <input type="text" name="city" class="form-control" required placeholder="e.g. Davao City">
-                        <small class="form-text text-muted">Only the city/municipality name is required.</small>
+                        <label> Municipality </label>
+                        <input type="text" name="city" class="form-control" required placeholder="e.g. Mati City">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -201,9 +200,8 @@
                 <div class="modal-body">
                     <input type="hidden" name="current_city" id="editCurrentCity">
                     <div class="form-group">
-                        <label>Municipality / City</label>
+                        <label> Municipality </label>
                         <input type="text" name="city" id="editCityName" class="form-control" required>
-                        <small class="form-text text-muted">Update only the city/municipality label shown in dropdowns.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
