@@ -95,7 +95,7 @@
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <div>
                                             <h5 class="card-title mb-0">Teams list</h5>
-                                            <small class="text-muted">Manage team names (formerly municipalities).</small>
+                                            <small class="text-muted">Manage team names.</small>
                                         </div>
                                         <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#addMunicipalityModal">
                                             <i class="mdi mdi-plus"></i> Add Team
