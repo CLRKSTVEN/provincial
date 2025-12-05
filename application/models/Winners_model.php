@@ -47,18 +47,20 @@ class Winners_model extends CI_Model
         $medalTallySql = $tallyBuilder->get_compiled_select();
 
         $this->db->select("
-        w.event_name,
-        w.event_group,
-        w.category,
-        CONCAT(w.last_name, ', ', w.first_name, ' ', COALESCE(w.middle_name, '')) AS full_name,
-        w.medal,
-        w.municipality,
-        w.created_at,
-        m.gold_count,
-        m.silver_count,
-        m.bronze_count,
-        m.total_medals
-    ", FALSE);
+            w.event_name,
+            w.event_group,
+            w.category,
+            CONCAT(w.last_name, ', ', w.first_name, ' ', COALESCE(w.middle_name, '')) AS full_name,
+            w.medal,
+            w.municipality,
+            w.school,
+            w.coach,
+            w.created_at,
+            m.gold_count,
+            m.silver_count,
+            m.bronze_count,
+            m.total_medals
+        ", FALSE);
         $this->db->from('winners w');
         $this->db->join("({$medalTallySql}) m", 'm.municipality = w.municipality', 'left');
 
@@ -97,6 +99,8 @@ class Winners_model extends CI_Model
             CONCAT(last_name, ', ', first_name, ' ', COALESCE(middle_name, '')) AS full_name,
             medal,
             municipality,
+            school,
+            coach,
             created_at
         ", FALSE);
         $this->db->from('winners');

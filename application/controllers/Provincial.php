@@ -10,6 +10,7 @@ class Provincial extends CI_Controller
         $this->load->model('Events_model');
         $this->load->model('Address_model');
         $this->load->model('MeetSettings_model'); // NEW
+        $this->load->model('Technical_model'); // NEW
         $this->load->library(array('form_validation', 'session'));
         $this->load->helper(array('url', 'form'));
     }
@@ -89,6 +90,8 @@ class Provincial extends CI_Controller
                         'last_name'   => $row['last_name'],
                         'medal'       => $row['medal'],
                         'municipality'=> $row['municipality'],
+                        'school'      => $row['school'],
+                        'coach'       => $row['coach'],
                     );
 
                     $this->Winners_model->insert_winner($insert);
@@ -111,8 +114,87 @@ class Provincial extends CI_Controller
         $data['event_groups'] = $this->Events_model->get_groups();
         $data['events'] = $this->Events_model->get_events_with_meta_and_counts();
         $data['municipalities'] = $this->Address_model->get_municipalities();
+        $data['technical'] = $this->Technical_model->get_all();
 
         $this->load->view('dashboard_admin', $data);
+    }
+
+    /**
+     * Technical officials manager.
+     */
+    public function technical()
+    {
+        $this->require_login();
+        $data['meet'] = $this->MeetSettings_model->get_settings();
+        $data['technical'] = $this->Technical_model->get_all();
+        $this->load->view('technical_admin', $data);
+    }
+
+    public function add_technical()
+    {
+        $this->require_login();
+        $this->form_validation->set_rules('name', 'Name', 'required|trim');
+        $this->form_validation->set_rules('role', 'Role', 'required|in_list[Tournament Manager,Technical Official]');
+
+        if ($this->form_validation->run()) {
+            $this->Technical_model->create(
+                $this->input->post('name', TRUE),
+                $this->input->post('role', TRUE)
+            );
+            $this->session->set_flashdata('success', 'Entry added.');
+        } else {
+            $this->session->set_flashdata('error', validation_errors('', ''));
+        }
+
+        redirect('provincial/technical');
+    }
+
+    public function update_technical()
+    {
+        $this->require_login();
+        $this->form_validation->set_rules('id', 'ID', 'required|integer|greater_than[0]');
+        $this->form_validation->set_rules('name', 'Name', 'required|trim');
+        $this->form_validation->set_rules('role', 'Role', 'required|in_list[Tournament Manager,Technical Official]');
+
+        if ($this->form_validation->run()) {
+            $id = (int) $this->input->post('id', TRUE);
+            $existing = $this->Technical_model->get($id);
+            if (!$existing) {
+                $this->session->set_flashdata('error', 'Entry not found.');
+                redirect('provincial/technical');
+                return;
+            }
+
+            $this->Technical_model->update(
+                $id,
+                $this->input->post('name', TRUE),
+                $this->input->post('role', TRUE)
+            );
+            $this->session->set_flashdata('success', 'Entry updated.');
+        } else {
+            $this->session->set_flashdata('error', validation_errors('', ''));
+        }
+
+        redirect('provincial/technical');
+    }
+
+    public function delete_technical()
+    {
+        $this->require_login();
+        $this->form_validation->set_rules('id', 'ID', 'required|integer|greater_than[0]');
+
+        if ($this->form_validation->run()) {
+            $id = (int) $this->input->post('id', TRUE);
+            $existing = $this->Technical_model->get($id);
+            if (!$existing) {
+                $this->session->set_flashdata('error', 'Entry not found.');
+            } else {
+                $this->Technical_model->delete($id);
+                $this->session->set_flashdata('success', 'Entry deleted.');
+            }
+        }
+
+        redirect('provincial/technical');
     }
 
     /**
@@ -221,6 +303,8 @@ class Provincial extends CI_Controller
                 'last_name'    => $this->input->post('last_name', TRUE),
                 'medal'        => $this->input->post('medal', TRUE),
                 'municipality' => $this->input->post('municipality', TRUE),
+                'school'       => $this->input->post('school', TRUE),
+                'coach'        => $this->input->post('coach', TRUE),
             ));
         }
 
@@ -273,6 +357,8 @@ class Provincial extends CI_Controller
                 'last_name'    => $payload['last_name'],
                 'medal'        => $payload['medal'],
                 'municipality' => $payload['municipality'],
+                'school'       => $payload['school'],
+                'coach'        => $payload['coach'],
             );
 
             $this->Winners_model->update_winner($winnerId, $update);
@@ -470,6 +556,8 @@ class Provincial extends CI_Controller
             $middle = isset($row['middle_name']) ? trim($row['middle_name']) : '';
             $last = isset($row['last_name']) ? trim($row['last_name']) : '';
             $municipality = isset($row['municipality']) ? trim($row['municipality']) : '';
+            $school = isset($row['school']) ? trim($row['school']) : '';
+            $coach = isset($row['coach']) ? trim($row['coach']) : '';
             $medal = isset($row['medal']) ? trim($row['medal']) : '';
 
             $allEmpty = ($first === '' && $middle === '' && $last === '' && $municipality === '');
@@ -499,6 +587,8 @@ class Provincial extends CI_Controller
                 'last_name'    => $last,
                 'medal'        => $medal,
                 'municipality' => $municipality,
+                'school'       => $school,
+                'coach'        => $coach,
             );
         }
 

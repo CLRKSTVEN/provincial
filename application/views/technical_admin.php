@@ -49,9 +49,8 @@
         <div class="content-page">
             <div class="content">
                 <div class="container-fluid">
-
                     <?php
-                    $municipalities = isset($municipalities) ? $municipalities : array();
+                    $technical = isset($technical) ? $technical : array();
                     $meet_title = isset($meet->meet_title) ? $meet->meet_title : 'Provincial Meet';
                     $meet_year  = isset($meet->meet_year)  ? $meet->meet_year  : date('Y');
                     ?>
@@ -61,10 +60,12 @@
                             <div class="page-title-box d-flex align-items-center justify-content-between flex-wrap">
                                 <div class="mb-2">
                                     <h4 class="page-title mb-0">
-                                        <?= htmlspecialchars($meet_title . ' ' . $meet_year, ENT_QUOTES, 'UTF-8'); ?> – Teams
+                                        <?= htmlspecialchars($meet_title . ' ' . $meet_year, ENT_QUOTES, 'UTF-8'); ?> – Technical Officials
                                     </h4>
                                 </div>
+                                <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
 
+                                </div>
                             </div>
                             <hr style="border:0;height:2px;background:linear-gradient(90deg,#059669 0%,#0ea5e9 50%,#22c55e 100%);border-radius:999px;margin-top:4px;">
                         </div>
@@ -94,41 +95,42 @@
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <div>
-                                            <h5 class="card-title mb-0">Teams list</h5>
-                                            <small class="text-muted">Manage team names (formerly municipalities).</small>
+                                            <h5 class="card-title mb-0">Technical lineup</h5>
+                                            <small class="text-muted">List the Tournament Manager and any Technical Officials.</small>
                                         </div>
-                                        <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#addMunicipalityModal">
-                                            <i class="mdi mdi-plus"></i> Add Team
+                                        <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#addTechnicalModal">
+                                            <i class="mdi mdi-plus"></i> Add Entry
                                         </button>
                                     </div>
 
                                     <div class="table-responsive">
-                                        <table class="table table-hover mb-0" id="municipalityTable">
+                                        <table class="table table-hover mb-0" id="technicalTable">
                                             <thead>
                                                 <tr>
-                                                    <th> Team </th>
+                                                    <th>Name</th>
+                                                    <th>Role</th>
                                                     <th class="text-right" style="width: 140px;">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php if (!empty($municipalities)): ?>
-                                                    <?php foreach ($municipalities as $row): ?>
-                                                        <?php $city = isset($row->municipality) ? $row->municipality : ''; ?>
+                                                <?php if (!empty($technical)): ?>
+                                                    <?php foreach ($technical as $row): ?>
                                                         <tr>
-                                                            <td><?= htmlspecialchars($city, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <td><?= htmlspecialchars($row->name, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <td><?= htmlspecialchars($row->role, ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td class="text-right">
                                                                 <button
                                                                     type="button"
-                                                                    class="btn btn-outline-secondary btn-sm btn-icon btn-edit-city"
-                                                                    data-city="<?= htmlspecialchars($city, ENT_QUOTES, 'UTF-8'); ?>"
-                                                                    data-toggle="tooltip"
-                                                                    data-placement="top"
+                                                                    class="btn btn-outline-secondary btn-sm btn-icon btn-edit-tech"
+                                                                    data-id="<?= (int) $row->id; ?>"
+                                                                    data-name="<?= htmlspecialchars($row->name, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                    data-role="<?= htmlspecialchars($row->role, ENT_QUOTES, 'UTF-8'); ?>"
                                                                     title="Edit">
                                                                     <i class="mdi mdi-pencil"></i>
                                                                 </button>
-                                                                <form class="d-inline" action="<?= site_url('provincial/delete_municipality'); ?>" method="post"
-                                                                    onsubmit="return confirm('Delete this municipality? This removes every matching address row.');">
-                                                                    <input type="hidden" name="city" value="<?= htmlspecialchars($city, ENT_QUOTES, 'UTF-8'); ?>">
+                                                                <form class="d-inline" action="<?= site_url('provincial/delete_technical'); ?>" method="post"
+                                                                    onsubmit="return confirm('Delete this entry?');">
+                                                                    <input type="hidden" name="id" value="<?= (int) $row->id; ?>">
                                                                     <button type="submit" class="btn btn-outline-danger btn-sm btn-icon" title="Delete">
                                                                         <i class="mdi mdi-delete-outline"></i>
                                                                     </button>
@@ -138,7 +140,7 @@
                                                     <?php endforeach; ?>
                                                 <?php else: ?>
                                                     <tr>
-                                                        <td colspan="2" class="text-center text-muted">No teams found.</td>
+                                                        <td colspan="3" class="text-center text-muted">No technical officials yet.</td>
                                                     </tr>
                                                 <?php endif; ?>
                                             </tbody>
@@ -160,21 +162,28 @@
 
     <?php include('includes/footer_plugins.php'); ?>
 
-    <!-- Add Team Modal -->
-    <div class="modal fade" id="addMunicipalityModal" tabindex="-1" role="dialog" aria-labelledby="addMunicipalityModalLabel" aria-hidden="true">
+    <!-- Add Modal -->
+    <div class="modal fade" id="addTechnicalModal" tabindex="-1" role="dialog" aria-labelledby="addTechnicalModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addMunicipalityModalLabel">Add Team</h5>
+                    <h5 class="modal-title" id="addTechnicalModalLabel">Add Entry</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <?= form_open('provincial/add_municipality'); ?>
+                <?= form_open('provincial/add_technical'); ?>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label> Team </label>
-                        <input type="text" name="city" class="form-control" required placeholder="e.g. Team Alpha">
+                        <label>Name</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select name="role" class="form-control" required>
+                            <option value="Tournament Manager">Tournament Manager</option>
+                            <option value="Technical Official">Technical Official</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -186,22 +195,29 @@
         </div>
     </div>
 
-    <!-- Edit Team Modal -->
-    <div class="modal fade" id="editMunicipalityModal" tabindex="-1" role="dialog" aria-labelledby="editMunicipalityModalLabel" aria-hidden="true">
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editTechnicalModal" tabindex="-1" role="dialog" aria-labelledby="editTechnicalModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editMunicipalityModalLabel">Edit Team</h5>
+                    <h5 class="modal-title" id="editTechnicalModalLabel">Edit Entry</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <?= form_open('provincial/update_municipality'); ?>
+                <?= form_open('provincial/update_technical'); ?>
                 <div class="modal-body">
-                    <input type="hidden" name="current_city" id="editCurrentCity">
+                    <input type="hidden" name="id" id="editTechId">
                     <div class="form-group">
-                        <label> Team </label>
-                        <input type="text" name="city" id="editCityName" class="form-control" required>
+                        <label>Name</label>
+                        <input type="text" name="name" id="editTechName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select name="role" id="editTechRole" class="form-control" required>
+                            <option value="Tournament Manager">Tournament Manager</option>
+                            <option value="Technical Official">Technical Official</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -215,24 +231,20 @@
 
     <script>
         $(function() {
-            if ($.fn.tooltip) {
-                $('[data-toggle="tooltip"]').tooltip({
-                    container: 'body'
-                });
-            }
-
-            $('.btn-edit-city').on('click', function() {
-                var city = $(this).data('city') || '';
-                $('#editCurrentCity').val(city);
-                $('#editCityName').val(city);
-                $('#editMunicipalityModal').modal('show');
+            $('.btn-edit-tech').on('click', function() {
+                var $btn = $(this);
+                $('#editTechId').val($btn.data('id'));
+                $('#editTechName').val($btn.data('name'));
+                $('#editTechRole').val($btn.data('role'));
+                $('#editTechnicalModal').modal('show');
             });
 
             if ($.fn.DataTable) {
-                $('#municipalityTable').DataTable({
+                $('#technicalTable').DataTable({
                     pageLength: 10,
                     lengthChange: false,
                     order: [
+                        [1, 'asc'],
                         [0, 'asc']
                     ],
                     autoWidth: false,

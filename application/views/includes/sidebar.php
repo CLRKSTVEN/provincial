@@ -131,7 +131,14 @@
                     <li class="<?= $municipalityActive ? 'mm-active' : ''; ?>">
                         <a href="<?= base_url('provincial/municipalities'); ?>" class="waves-effect">
                             <i class="mdi mdi-city"></i>
-                            <span> Municipalities </span>
+                            <span> Teams </span>
+                        </a>
+                    </li>
+                    <?php $technicalActive = stripos($currentUri, trim('provincial/technical', '/')) === 0; ?>
+                    <li class="<?= $technicalActive ? 'mm-active' : ''; ?>">
+                        <a href="<?= base_url('provincial/technical'); ?>" class="waves-effect">
+                            <i class="mdi mdi-account-tie"></i>
+                            <span> Technical Officials </span>
                         </a>
                     </li>
 
@@ -191,11 +198,13 @@
                             $isSectionActive  = $manageMatch($sectionPrefixes);
                             $isUserActive     = stripos($currentUri, trim('Page/userAccounts', '/')) === 0;
                             $isMunicipalityActive = stripos($currentUri, trim('provincial/municipalities', '/')) === 0;
+                            $isTechnicalActive = stripos($currentUri, trim('provincial/technical', '/')) === 0;
 
                             $courseLinkClass  = $isCourseActive ? 'active' : '';
                             $sectionLinkClass = $isSectionActive ? 'active' : '';
                             $userLinkClass    = $isUserActive ? 'active' : '';
                             $municipalityLinkClass = $isMunicipalityActive ? 'active' : '';
+                            $technicalLinkClass = $isTechnicalActive ? 'active' : '';
                             ?>
                             <li>
                                 <a class="<?= $courseLinkClass; ?>" href="<?= base_url('Settings/Department'); ?>"> Course </a>
@@ -205,7 +214,10 @@
                                 <a class="<?= $sectionLinkClass; ?>" href="<?= base_url('Page/manageSections'); ?>"> Sections </a>
                             </li>
                             <li>
-                                <a class="<?= $municipalityLinkClass; ?>" href="<?= base_url('provincial/municipalities'); ?>"> Municipalities </a>
+                                <a class="<?= $municipalityLinkClass; ?>" href="<?= base_url('provincial/municipalities'); ?>"> Teams </a>
+                            </li>
+                            <li>
+                                <a class="<?= $technicalLinkClass; ?>" href="<?= base_url('provincial/technical'); ?>"> Technical Officials </a>
                             </li>
                             <li>
                                 <a class="<?= $userLinkClass; ?>" href="<?= base_url('Page/userAccounts'); ?>"> Admin Accounts </a>
@@ -1222,7 +1234,10 @@
             <div id="sidebar-menu">
                 <ul class="metismenu" id="side-menu">
                     <li class="menu-title">Navigation</li>
-                    <?php $municipalityActive = stripos(trim(uri_string(), '/'), trim('provincial/municipalities', '/')) === 0; ?>
+                    <?php
+                    $municipalityActive = stripos(trim(uri_string(), '/'), trim('provincial/municipalities', '/')) === 0;
+                    $technicalActive = stripos(trim(uri_string(), '/'), trim('provincial/technical', '/')) === 0;
+                    ?>
                     <li>
                         <a href="<?= base_url('Page/admin'); ?>" class="waves-effect">
                             <i class="bi bi-house-door"></i>
@@ -1232,7 +1247,13 @@
                     <li class="<?= $municipalityActive ? 'mm-active' : ''; ?>">
                         <a href="<?= base_url('provincial/municipalities'); ?>" class="waves-effect">
                             <i class="mdi mdi-city"></i>
-                            <span> Municipalities </span>
+                            <span> Teams </span>
+                        </a>
+                    </li>
+                    <li class="<?= $technicalActive ? 'mm-active' : ''; ?>">
+                        <a href="<?= base_url('provincial/technical'); ?>" class="waves-effect">
+                            <i class="mdi mdi-account-tie"></i>
+                            <span> Technical Officials </span>
                         </a>
                     </li>
                     <li>

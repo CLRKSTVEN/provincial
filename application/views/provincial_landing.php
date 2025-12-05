@@ -638,7 +638,7 @@
         text-align: right;
     }
 
-    /* Municipality picker + modal table – light styling */
+    /* Team picker + modal table – light styling */
     .municipality-picker {
         background: #f9fafb;
         border: 1px solid #e5e7eb;
@@ -1025,7 +1025,7 @@
                                     data-toggle="modal" data-target="#municipalityModal"
                                     data-bs-toggle="modal" data-bs-target="#municipalityModal"
                                     role="button" tabindex="0">
-                                    <div class="summary-label">Participating Municipalities</div>
+                                    <div class="summary-label">Participating Teams</div>
                                     <div class="summary-value" id="stat-municipalities"><?= $municipalities; ?></div>
                                     <div class="summary-sub">with at least one officially recorded medal</div>
                                 </div>
@@ -1070,7 +1070,7 @@
                                     </span>
                                     <?php if (!empty($activeMunicipality)): ?>
                                         <span class="filter-chip filter-chip-accent">
-                                            Municipality: <?= htmlspecialchars($activeMunicipality, ENT_QUOTES, 'UTF-8'); ?>
+                                            Team: <?= htmlspecialchars($activeMunicipality, ENT_QUOTES, 'UTF-8'); ?>
                                         </span>
                                         <a href="<?= site_url('provincial' . ($group !== 'ALL' ? '?group=' . urlencode($group) : '')); ?>"
                                             class="btn btn-sm btn-outline-danger clear-filter-btn">
@@ -1078,7 +1078,7 @@
                                         </a>
                                     <?php else: ?>
                                         <span class="filter-chip filter-chip-muted">
-                                            Municipality: All
+                                            Team: All
                                         </span>
                                     <?php endif; ?>
                                 </div>
@@ -1092,7 +1092,7 @@
                                             <th>Category</th>
                                             <th>Name</th>
                                             <th class="text-center">Medal</th>
-                                            <th>Municipality</th>
+                                            <th>Team</th>
                                         </tr>
                                     </thead>
                                     <tbody id="winners-body">
@@ -1173,7 +1173,7 @@
         </div>
     </section>
 
-    <!-- Participating Municipalities Modal -->
+    <!-- Participating Teams Modal -->
     <?php
     $tally = isset($municipality_tally) ? $municipality_tally : array();
     $allMunicipalities = isset($municipalities_all) ? $municipalities_all : array();
@@ -1233,7 +1233,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="municipalityModalLabel">Participating Municipalities</h5>
+                    <h5 class="modal-title" id="municipalityModalLabel">Participating Teams</h5>
                     <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true" style="font-size:1.4rem;">&times;</span>
                     </button>
@@ -1242,10 +1242,10 @@
                     <?php if (!empty($allMunicipalities)): ?>
                         <div class="municipality-picker" id="municipalityPicker"
                             data-base-url="<?= $baseUrl; ?>" data-group-query="<?= $groupQuery; ?>">
-                            <span class="municipality-picker-label">Jump to a municipal dashboard</span>
+                            <span class="municipality-picker-label">Jump to a team dashboard</span>
                             <div class="municipality-picker-row">
                                 <select class="form-control form-control-sm" id="municipalitySelect">
-                                    <option value="">Select municipality</option>
+                                    <option value="">Select team</option>
                                     <?php foreach ($allMunicipalities as $row): ?>
                                         <option value="<?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>">
                                             <?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>
@@ -1261,7 +1261,7 @@
                             <table class="table table-sm table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Municipality</th>
+                                        <th>Team</th>
                                         <th class="text-center">Gold</th>
                                         <th class="text-center">Silver</th>
                                         <th class="text-center">Bronze</th>

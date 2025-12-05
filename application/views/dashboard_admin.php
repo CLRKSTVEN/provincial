@@ -274,8 +274,10 @@
                                                         <th>Category</th>
                                                         <th>Winner</th>
                                                         <th class="text-center">Medal</th>
-                                                        <th>Municipality</th>
-                                                        <th class="text-right" style="width: 120px;">Actions</th>
+                                                        <th>Team</th>
+                                                        <th>School</th>
+                                                        <th>Coach</th>
+                                                        <th class="text-right" style="width: 140px;">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -297,6 +299,8 @@
                                                                 <span class="badge badge-medal <?= $badgeClass; ?>"><?= htmlspecialchars($row->medal, ENT_QUOTES, 'UTF-8'); ?></span>
                                                             </td>
                                                             <td><?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <td><?= htmlspecialchars($row->school ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <td><?= htmlspecialchars($row->coach ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td class="text-right align-middle">
                                                                 <span class="recent-winners-actions">
                                                                     <button
@@ -312,7 +316,9 @@
                                                                         data-middle-name="<?= htmlspecialchars($row->middle_name, ENT_QUOTES, 'UTF-8'); ?>"
                                                                         data-last-name="<?= htmlspecialchars($row->last_name, ENT_QUOTES, 'UTF-8'); ?>"
                                                                         data-medal="<?= htmlspecialchars($row->medal, ENT_QUOTES, 'UTF-8'); ?>"
-                                                                        data-municipality="<?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>">
+                                                                        data-municipality="<?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        data-school="<?= htmlspecialchars($row->school ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        data-coach="<?= htmlspecialchars($row->coach ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                                                         <i class="mdi mdi-pencil"></i>
                                                                     </button>
                                                                     <form action="<?= site_url('provincial/delete_winner/' . (int) $row->id); ?>"
@@ -620,7 +626,7 @@
                     </div>
 
                     <div id="municipalityOptionsTemplate" class="d-none">
-                        <option value="">-- Select Municipality --</option>
+                        <option value="">-- Select Team --</option>
                         <?php foreach ($municipalities_list as $municipality): ?>
                             <?php $name = $municipality->municipality; ?>
                             <option value="<?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>">
@@ -843,23 +849,33 @@
                     '<button type="button" class="btn btn-link text-danger p-0 btn-remove-row">Remove</button>' +
                     '</div>' +
                     '<div class="form-row">' +
-                    '<div class="form-group col-md-3">' +
+                    '<div class="form-group col-md-4">' +
                     '<label class="small text-muted mb-1">First name</label>' +
                     '<input type="text" name="winners[' + index + '][first_name]" class="form-control form-control-sm">' +
                     '</div>' +
-                    '<div class="form-group col-md-3">' +
+                    '<div class="form-group col-md-4">' +
                     '<label class="small text-muted mb-1">Middle name</label>' +
                     '<input type="text" name="winners[' + index + '][middle_name]" class="form-control form-control-sm">' +
                     '</div>' +
-                    '<div class="form-group col-md-3">' +
+                    '<div class="form-group col-md-4">' +
                     '<label class="small text-muted mb-1">Last name</label>' +
                     '<input type="text" name="winners[' + index + '][last_name]" class="form-control form-control-sm">' +
                     '</div>' +
-                    '<div class="form-group col-md-3">' +
-                    '<label class="small text-muted mb-1">Municipality</label>' +
+                    '</div>' +
+                    '<div class="form-row">' +
+                    '<div class="form-group col-md-4">' +
+                    '<label class="small text-muted mb-1">Team</label>' +
                     '<select name="winners[' + index + '][municipality]" class="form-control form-control-sm">' +
                     municipalityOptionsHtml +
                     '</select>' +
+                    '</div>' +
+                    '<div class="form-group col-md-4">' +
+                    '<label class="small text-muted mb-1">School</label>' +
+                    '<input type="text" name="winners[' + index + '][school]" class="form-control form-control-sm" placeholder="School name">' +
+                    '</div>' +
+                    '<div class="form-group col-md-4">' +
+                    '<label class="small text-muted mb-1">Coach</label>' +
+                    '<input type="text" name="winners[' + index + '][coach]" class="form-control form-control-sm" placeholder="Coach">' +
                     '</div>' +
                     '</div>' +
                     '<input type="hidden" name="winners[' + index + '][medal]" value="' + medal + '">' +
@@ -871,6 +887,8 @@
                 $row.find('input[name="winners[' + index + '][middle_name]"]').val(data.middle_name || '');
                 $row.find('input[name="winners[' + index + '][last_name]"]').val(data.last_name || '');
                 $row.find('select[name="winners[' + index + '][municipality]"]').val(data.municipality || '');
+                $row.find('input[name="winners[' + index + '][school]"]').val(data.school || '');
+                $row.find('input[name="winners[' + index + '][coach]"]').val(data.coach || '');
 
                 medalContainers[medal].append($row);
             }
@@ -945,7 +963,9 @@
                     middle_name: $btn.data('middle-name'),
                     last_name: $btn.data('last-name'),
                     medal: $btn.data('medal'),
-                    municipality: $btn.data('municipality')
+                    municipality: $btn.data('municipality'),
+                    school: $btn.data('school'),
+                    coach: $btn.data('coach')
                 };
 
                 setEditMode(data);
