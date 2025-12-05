@@ -25,6 +25,41 @@
         color: #111827;
     }
 
+    .recent-winners-table th,
+    .recent-winners-table td {
+        vertical-align: middle;
+    }
+
+    .recent-winners-actions,
+    .table-actions {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        flex-wrap: nowrap;
+    }
+
+    .recent-winners-actions form,
+    .table-actions form {
+        margin: 0;
+    }
+
+    .btn-icon {
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+    }
+
+    .btn-icon .mdi {
+        font-size: 1rem;
+        line-height: 1;
+    }
+
     .table thead th {
         text-transform: uppercase;
         font-size: 0.78rem;
@@ -191,7 +226,7 @@
                                     <?php $recent_winners = isset($recent_winners) ? $recent_winners : array(); ?>
                                     <?php if (!empty($recent_winners)): ?>
                                         <div class="table-responsive">
-                                            <table class="table table-hover mb-0">
+                                            <table class="table table-hover mb-0 recent-winners-table">
                                                 <thead>
                                                     <tr>
                                                         <th>Event</th>
@@ -200,7 +235,7 @@
                                                         <th>Winner</th>
                                                         <th class="text-center">Medal</th>
                                                         <th>Municipality</th>
-                                                        <th class="text-right">Actions</th>
+                                                        <th class="text-right" style="width: 120px;">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -222,26 +257,36 @@
                                                                 <span class="badge badge-medal <?= $badgeClass; ?>"><?= htmlspecialchars($row->medal, ENT_QUOTES, 'UTF-8'); ?></span>
                                                             </td>
                                                             <td><?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?></td>
-                                                            <td class="text-right">
-                                                                <button
-                                                                    type="button"
-                                                                    class="btn btn-outline-secondary btn-sm btn-edit-winner"
-                                                                    data-id="<?= (int) $row->id; ?>"
-                                                                    data-event-id="<?= (int) $row->event_id; ?>"
-                                                                    data-first-name="<?= htmlspecialchars($row->first_name, ENT_QUOTES, 'UTF-8'); ?>"
-                                                                    data-middle-name="<?= htmlspecialchars($row->middle_name, ENT_QUOTES, 'UTF-8'); ?>"
-                                                                    data-last-name="<?= htmlspecialchars($row->last_name, ENT_QUOTES, 'UTF-8'); ?>"
-                                                                    data-medal="<?= htmlspecialchars($row->medal, ENT_QUOTES, 'UTF-8'); ?>"
-                                                                    data-municipality="<?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>">
-                                                                    Edit
-                                                                </button>
-                                                                <form action="<?= site_url('provincial/delete_winner/' . (int) $row->id); ?>"
-                                                                    method="post" style="display:inline-block;"
-                                                                    onsubmit="return confirm('Delete this winner?');">
-                                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                                        Delete
+                                                            <td class="text-right align-middle">
+                                                                <span class="recent-winners-actions">
+                                                                    <button
+                                                                        type="button"
+                                                                        class="btn btn-outline-secondary btn-sm btn-icon btn-edit-winner"
+                                                                        data-toggle="tooltip"
+                                                                        data-placement="top"
+                                                                        title="Edit"
+                                                                        aria-label="Edit"
+                                                                        data-id="<?= (int) $row->id; ?>"
+                                                                        data-event-id="<?= (int) $row->event_id; ?>"
+                                                                        data-first-name="<?= htmlspecialchars($row->first_name, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        data-middle-name="<?= htmlspecialchars($row->middle_name, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        data-last-name="<?= htmlspecialchars($row->last_name, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        data-medal="<?= htmlspecialchars($row->medal, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        data-municipality="<?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>">
+                                                                        <i class="mdi mdi-pencil"></i>
                                                                     </button>
-                                                                </form>
+                                                                    <form action="<?= site_url('provincial/delete_winner/' . (int) $row->id); ?>"
+                                                                        method="post" onsubmit="return confirm('Delete this winner?');">
+                                                                        <button type="submit"
+                                                                            class="btn btn-outline-danger btn-sm btn-icon"
+                                                                            data-toggle="tooltip"
+                                                                            data-placement="top"
+                                                                            title="Delete"
+                                                                            aria-label="Delete">
+                                                                            <i class="mdi mdi-delete-outline"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </span>
                                                             </td>
                                                         </tr>
                                                     <?php endforeach; ?>
@@ -281,7 +326,7 @@
                                                     <th style="width:40%;">Event</th>
                                                     <th style="width:20%;">Group</th>
                                                     <th style="width:20%;">Category</th>
-                                                    <th style="width:20%;" class="text-right">Actions</th>
+                                                    <th style="width:120px;" class="text-right">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -291,23 +336,33 @@
                                                             <td><?= htmlspecialchars($event->event_name, ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td><?= htmlspecialchars($event->group_name ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td><?= htmlspecialchars($event->category_name ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
-                                                            <td class="text-right">
-                                                                <button
-                                                                    type="button"
-                                                                    class="btn btn-outline-secondary btn-sm btn-edit-event"
-                                                                    data-id="<?= (int) $event->event_id; ?>"
-                                                                    data-name="<?= htmlspecialchars($event->event_name, ENT_QUOTES, 'UTF-8'); ?>"
-                                                                    data-group-id="<?= $event->group_id !== null ? (int) $event->group_id : ''; ?>"
-                                                                    data-category-id="<?= $event->category_id !== null ? (int) $event->category_id : ''; ?>">
-                                                                    Edit
-                                                                </button>
-                                                                <form action="<?= site_url('provincial/delete_event/' . (int) $event->event_id); ?>"
-                                                                    method="post" style="display:inline-block;"
-                                                                    onsubmit="return confirm('Delete this event?');">
-                                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                                        Delete
+                                                            <td class="text-right align-middle">
+                                                                <span class="table-actions">
+                                                                    <button
+                                                                        type="button"
+                                                                        class="btn btn-outline-secondary btn-sm btn-icon btn-edit-event"
+                                                                        data-toggle="tooltip"
+                                                                        data-placement="top"
+                                                                        title="Edit"
+                                                                        aria-label="Edit"
+                                                                        data-id="<?= (int) $event->event_id; ?>"
+                                                                        data-name="<?= htmlspecialchars($event->event_name, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        data-group-id="<?= $event->group_id !== null ? (int) $event->group_id : ''; ?>"
+                                                                        data-category-id="<?= $event->category_id !== null ? (int) $event->category_id : ''; ?>">
+                                                                        <i class="mdi mdi-pencil"></i>
                                                                     </button>
-                                                                </form>
+                                                                    <form action="<?= site_url('provincial/delete_event/' . (int) $event->event_id); ?>"
+                                                                        method="post" onsubmit="return confirm('Delete this event?');">
+                                                                        <button type="submit"
+                                                                            class="btn btn-outline-danger btn-sm btn-icon"
+                                                                            data-toggle="tooltip"
+                                                                            data-placement="top"
+                                                                            title="Delete"
+                                                                            aria-label="Delete">
+                                                                            <i class="mdi mdi-delete-outline"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </span>
                                                             </td>
                                                         </tr>
                                                     <?php endforeach; ?>
@@ -605,6 +660,12 @@
 
     <script>
         $(function() {
+            if ($.fn.tooltip) {
+                $('[data-toggle="tooltip"]').tooltip({
+                    container: 'body'
+                });
+            }
+
             var createAction = "<?= site_url('provincial/admin'); ?>";
             var updateAction = "<?= site_url('provincial/update_winner'); ?>";
             var createEventAction = "<?= site_url('provincial/add_event'); ?>";

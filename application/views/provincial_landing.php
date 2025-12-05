@@ -80,7 +80,7 @@
 
     .landing-page-wrapper {
         min-height: 100vh;
-        padding: 18px 12px;
+        padding: 18px 12px 12px;
         position: relative;
         z-index: 1;
         display: flex;
@@ -89,14 +89,14 @@
     }
 
     .landing-card {
-        min-height: auto;
+        min-height: 0;
         display: flex;
         flex-direction: column;
         width: 100%;
     }
 
     .landing-card-inner {
-        flex: 0 0 auto;
+        flex: 1 1 auto;
         max-width: 1180px;
         margin: 0 auto;
         width: 100%;
@@ -109,6 +109,10 @@
             0 0 0 1px rgba(226, 232, 240, 0.9);
         position: relative;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: none;
     }
 
     .landing-card-inner::before {
@@ -134,6 +138,7 @@
         animation: headerDrop 0.4s ease-out;
         border-bottom: 1px solid #e5e7eb;
         padding-bottom: 10px;
+        flex-shrink: 0;
     }
 
     @keyframes headerDrop {
@@ -179,8 +184,11 @@
         color: var(--muted);
         font-size: 0.88rem;
         line-height: 1.5;
-        display: block;
-        max-width: 500px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-width: 640px;
     }
 
     .landing-actions {
@@ -292,6 +300,7 @@
         margin-bottom: 14px;
         margin-top: 4px;
         animation: summaryFade 0.4s ease-out 0.05s both;
+        flex-shrink: 0;
     }
 
     @keyframes summaryFade {
@@ -384,6 +393,7 @@
         flex: 1;
         display: flex;
         flex-direction: column;
+        min-height: 0;
         box-shadow:
             0 18px 36px rgba(148, 163, 184, 0.32),
             0 0 0 1px rgba(226, 232, 240, 0.9);
@@ -412,6 +422,7 @@
         background: linear-gradient(to right, #eff6ff, #f9fafb);
         border-bottom: 1px solid #e5e7eb;
         flex-wrap: wrap;
+        flex-shrink: 0;
     }
 
     .winners-toolbar-left {
@@ -484,8 +495,8 @@
     }
 
     .table-responsive {
-        flex: 1;
-        overflow-y: auto;
+        flex: 0 1 auto;
+        overflow-y: visible;
     }
 
     .winners-table {
@@ -620,6 +631,7 @@
         font-weight: 500;
         gap: 8px;
         flex-wrap: wrap;
+        flex-shrink: 0;
     }
 
     .footer-note span {
@@ -879,6 +891,7 @@
     @media (max-width: 576px) {
         .landing-card-inner {
             padding-inline: 14px;
+            max-height: none;
         }
 
         .landing-title h2 {
@@ -922,6 +935,10 @@
 
         .landing-card-inner::before {
             display: none;
+        }
+
+        .landing-title small {
+            -webkit-line-clamp: 3;
         }
     }
 </style>
