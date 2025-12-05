@@ -1055,7 +1055,10 @@
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="summary-card">
+                                    <div class="summary-card clickable" id="totalMedalsCard" role="button" tabindex="0"
+                                        aria-label="View medal breakdown"
+                                        data-toggle="modal" data-target="#medalModal"
+                                        data-bs-toggle="modal" data-bs-target="#medalModal">
                                         <div class="summary-label">Total Medals</div>
                                         <div class="summary-value">
                                             <span id="stat-total-medals"><?= $totalMedals; ?></span>
@@ -1106,7 +1109,7 @@
                                 <div class="winners-toolbar">
                                     <div class="winners-toolbar-left">
                                         <h5 class="winners-heading">Live Tally</h5>
-                                        <p class="winners-subtext mb-0">Tap a medal count or view a team dashboard.</p>
+                                        <p class="winners-subtext mb-0">Tap a medal count or view a team.</p>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -1221,6 +1224,7 @@
                                                 <th class="text-center">Category</th>
                                                 <th>Name</th>
                                                 <th class="text-center">Medal</th>
+                                                <th>Team</th>
                                                 <th class="text-center">School</th>
                                                 <th class="text-center">Coach</th>
                                             </tr>
@@ -1233,17 +1237,17 @@
                                                     $chipClass = 'chip-silver';
                                                     if ($medal === 'Gold') $chipClass = 'chip-gold';
                                                     elseif ($medal === 'Bronze') $chipClass = 'chip-bronze';
-                                                    $fullNameParts = array_filter(array($w->first_name ?? '', $w->middle_name ?? '', $w->last_name ?? ''));
-                                                    $fullName = implode(' ', $fullNameParts);
+                                                    $fullName = '';
+                                                    if (!empty($w->full_name)) {
+                                                        $fullName = $w->full_name;
+                                                    } else {
+                                                        $fullNameParts = array_filter(array($w->first_name ?? '', $w->middle_name ?? '', $w->last_name ?? ''));
+                                                        $fullName = implode(' ', $fullNameParts);
+                                                    }
                                                     ?>
                                                     <tr data-medal="<?= htmlspecialchars($medal, ENT_QUOTES, 'UTF-8'); ?>">
                                                         <td class="align-middle">
-                                                            <div class="d-flex align-items-center" style="gap:8px;">
-                                                                <?php if (!empty($teamLogo)): ?>
-                                                                    <img src="<?= base_url('upload/team_logos/' . $teamLogo); ?>" alt="<?= htmlspecialchars($selectedName, ENT_QUOTES, 'UTF-8'); ?> logo" style="height:30px;width:auto;border-radius:6px;">
-                                                                <?php endif; ?>
-                                                                <span><?= htmlspecialchars($w->event_name ?? '', ENT_QUOTES, 'UTF-8'); ?></span>
-                                                            </div>
+                                                            <span><?= htmlspecialchars($w->event_name ?? '', ENT_QUOTES, 'UTF-8'); ?></span>
                                                         </td>
                                                         <td class="align-middle text-center"><?= htmlspecialchars($w->event_group ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
                                                         <td class="align-middle text-center"><?= htmlspecialchars($w->category ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
@@ -1251,13 +1255,21 @@
                                                         <td class="align-middle text-center">
                                                             <span class="chip-medal <?= $chipClass; ?>"><?= htmlspecialchars($medal, ENT_QUOTES, 'UTF-8'); ?></span>
                                                         </td>
+                                                        <td class="align-middle">
+                                                            <div class="d-flex align-items-center" style="gap:8px;">
+                                                                <?php if (!empty($teamLogo)): ?>
+                                                                    <img src="<?= base_url('upload/team_logos/' . $teamLogo); ?>" alt="<?= htmlspecialchars($selectedName, ENT_QUOTES, 'UTF-8'); ?> logo" style="height:28px;width:auto;border-radius:6px;">
+                                                                <?php endif; ?>
+                                                                <span><?= htmlspecialchars($selectedName, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                            </div>
+                                                        </td>
                                                         <td class="align-middle text-center"><?= htmlspecialchars($w->school ?? '—', ENT_QUOTES, 'UTF-8'); ?></td>
                                                         <td class="align-middle text-center"><?= htmlspecialchars($w->coach ?? '—', ENT_QUOTES, 'UTF-8'); ?></td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
                                                 <tr class="no-results-row">
-                                                    <td colspan="7" class="text-center py-5 text-muted">
+                                                    <td colspan="8" class="text-center py-5 text-muted">
                                                         No encoded events for this team yet.
                                                     </td>
                                                 </tr>
@@ -1279,6 +1291,87 @@
             </div>
         </div>
     </section>
+
+    <?php
+    // Prepare medal-sorted winners for the modal (current filter scope: group + optional municipality)
+    $winnersSorted = $winners ?? array();
+    if (!empty($winnersSorted) && is_array($winnersSorted)) {
+        usort($winnersSorted, function ($a, $b) {
+            $weight = ['Gold' => 3, 'Silver' => 2, 'Bronze' => 1];
+            $medalDiff = ($weight[$b->medal] ?? 0) - ($weight[$a->medal] ?? 0);
+            if ($medalDiff !== 0) return $medalDiff;
+            $eventDiff = strcasecmp($a->event_name ?? '', $b->event_name ?? '');
+            if ($eventDiff !== 0) return $eventDiff;
+            return strcasecmp($a->municipality ?? '', $b->municipality ?? '');
+        });
+    }
+    ?>
+
+    <!-- Medal Breakdown Modal -->
+    <div class="modal fade" id="medalModal" tabindex="-1" role="dialog" aria-labelledby="medalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="medalModalLabel">Medal Breakdown</h5>
+                    <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true" style="font-size:1.4rem;">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="min-width:180px;">Event</th>
+                                    <th class="text-center">Group</th>
+                                    <th class="text-center">Category</th>
+                                    <th>Winner</th>
+                                    <th class="text-center">Medal</th>
+                                    <th>Team</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($winnersSorted)): ?>
+                                    <?php foreach ($winnersSorted as $w): ?>
+                                        <?php
+                                        $medal = $w->medal ?? 'Silver';
+                                        $chipClass = 'chip-silver';
+                                        if ($medal === 'Gold') $chipClass = 'chip-gold';
+                                        elseif ($medal === 'Bronze') $chipClass = 'chip-bronze';
+                                        $fullName = '';
+                                        if (!empty($w->full_name)) {
+                                            $fullName = $w->full_name;
+                                        } else {
+                                            $fullNameParts = array_filter(array($w->first_name ?? '', $w->middle_name ?? '', $w->last_name ?? ''));
+                                            $fullName = implode(' ', $fullNameParts);
+                                        }
+                                        ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($w->event_name ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td class="text-center"><?= htmlspecialchars($w->event_group ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td class="text-center"><?= htmlspecialchars($w->category ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?= htmlspecialchars($fullName, ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td class="text-center">
+                                                <span class="chip-medal <?= $chipClass; ?>"><?= htmlspecialchars($medal, ENT_QUOTES, 'UTF-8'); ?></span>
+                                            </td>
+                                            <td><?= htmlspecialchars($w->municipality ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr class="no-results-row">
+                                        <td colspan="6" class="text-center py-4 text-muted">No medal data yet.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Participating Teams Modal -->
     <?php
@@ -1481,6 +1574,26 @@
                 modalEl.setAttribute('aria-modal', 'true');
             }
 
+            function openMedalModal() {
+                var modalEl = document.getElementById('medalModal');
+                if (!modalEl) return;
+
+                if (bootstrap && bootstrap.Modal) {
+                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    return;
+                }
+
+                if ($.fn && $.fn.modal) {
+                    $(modalEl).modal('show');
+                    return;
+                }
+
+                modalEl.classList.add('show');
+                modalEl.style.display = 'block';
+                modalEl.removeAttribute('aria-hidden');
+                modalEl.setAttribute('aria-modal', 'true');
+            }
+
             function renderWinnersRows(winners) {
                 var hasResults = winners && winners.length > 0;
 
@@ -1650,6 +1763,18 @@
                         e.preventDefault();
                         openMunicipalityModal();
                     }
+                });
+
+                $('#totalMedalsCard').on('click keypress', function(e) {
+                    if (e.type === 'click' || e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openMedalModal();
+                    }
+                });
+
+                $('#stat-medal-breakdown, #stat-total-medals').css('cursor', 'pointer').on('click', function(e) {
+                    e.preventDefault();
+                    openMedalModal();
                 });
 
                 refreshResults();
