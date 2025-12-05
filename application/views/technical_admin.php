@@ -125,14 +125,17 @@
                                                                     data-id="<?= (int) $row->id; ?>"
                                                                     data-name="<?= htmlspecialchars($row->name, ENT_QUOTES, 'UTF-8'); ?>"
                                                                     data-role="<?= htmlspecialchars($row->role, ENT_QUOTES, 'UTF-8'); ?>"
-                                                                    title="Edit">
-                                                                    <i class="mdi mdi-pencil"></i>
+                                                                    title="Edit official" data-toggle="tooltip" data-placement="top">
+                                                                    <i class="mdi mdi-pencil" aria-hidden="true"></i>
+                                                                    <span class="sr-only">Edit official</span>
                                                                 </button>
                                                                 <form class="d-inline" action="<?= site_url('provincial/delete_technical'); ?>" method="post"
                                                                     onsubmit="return confirm('Delete this entry?');">
                                                                     <input type="hidden" name="id" value="<?= (int) $row->id; ?>">
-                                                                    <button type="submit" class="btn btn-outline-danger btn-sm btn-icon" title="Delete">
-                                                                        <i class="mdi mdi-delete-outline"></i>
+                                                                    <button type="submit" class="btn btn-outline-danger btn-sm btn-icon"
+                                                                        title="Delete official" data-toggle="tooltip" data-placement="top">
+                                                                        <i class="mdi mdi-delete-outline" aria-hidden="true"></i>
+                                                                        <span class="sr-only">Delete official</span>
                                                                     </button>
                                                                 </form>
                                                             </td>
