@@ -5,15 +5,18 @@
 
 <style>
     :root {
-        --bg-gradient: radial-gradient(circle at top left, #dbeafe 0, transparent 55%),
-            radial-gradient(circle at bottom right, #fee2e2 0, transparent 55%),
-            linear-gradient(135deg, #eff6ff 0%, #f9fafb 50%, #fefce8 100%);
+        --bg-gradient: radial-gradient(circle at 12% 18%, rgba(96, 165, 250, 0.25), transparent 42%),
+            radial-gradient(circle at 82% 78%, rgba(249, 115, 22, 0.18), transparent 40%),
+            linear-gradient(135deg, #e0f2fe 0%, #fdf2f8 55%, #fff7ed 100%);
         --card-bg: #ffffff;
         --card-border: #e2e8f0;
         --accent: #2563eb;
-        --accent-soft: #eff6ff;
+        --accent-soft: #e0e7ff;
         --muted: #6b7280;
-        --text-main: #111827;
+        --text-main: #0f172a;
+        --gold: #c58a00;
+        --silver: #4b5563;
+        --bronze: #a84300;
     }
 
     * {
@@ -103,7 +106,7 @@
         padding: 18px 18px 20px;
         border-radius: 20px;
         border: 1px solid var(--card-border);
-        background: radial-gradient(circle at top left, #ffffff 0, #f8fafc 40%, #f9fafb 100%);
+        background: radial-gradient(circle at 20% 24%, #ffffff 0, #f1f5f9 42%, #f8fafc 100%);
         box-shadow:
             0 14px 36px rgba(148, 163, 184, 0.28),
             0 0 0 1px rgba(226, 232, 240, 0.9);
@@ -484,6 +487,31 @@
         background: #f9fafb;
     }
 
+    .medal-filter-link,
+    .medal-filter {
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .medal-filter-link[data-medal="Gold"],
+    .medal-filter[data-medal="Gold"] {
+        color: var(--gold);
+    }
+
+    .medal-filter-link[data-medal="Silver"],
+    .medal-filter[data-medal="Silver"] {
+        color: var(--silver);
+    }
+
+    .medal-filter-link[data-medal="Bronze"],
+    .medal-filter[data-medal="Bronze"] {
+        color: var(--bronze);
+    }
+
+    .medal-filter-link[data-medal="All"] {
+        color: var(--accent);
+    }
+
     .clear-filter-btn {
         border-radius: 999px;
         font-weight: 600;
@@ -591,9 +619,9 @@
     }
 
     .chip-gold {
-        background: linear-gradient(135deg, #fef3c7, #fde68a);
-        color: #78350f;
-        border-color: #f59e0b;
+        background: linear-gradient(135deg, #fff3bf, #ffdd57);
+        color: #8b6500;
+        border-color: #eab308;
         box-shadow:
             0 0 18px rgba(251, 191, 36, 0.4),
             0 0 0 1px rgba(248, 250, 252, 1);
@@ -609,9 +637,9 @@
     }
 
     .chip-bronze {
-        background: linear-gradient(135deg, #fed7aa, #fdba74);
-        color: #7c2d12;
-        border-color: #f97316;
+        background: linear-gradient(135deg, #ffd9b0, #f7a258);
+        color: #7a2e0a;
+        border-color: #d97706;
         box-shadow:
             0 0 18px rgba(248, 153, 82, 0.45),
             0 0 0 1px rgba(248, 250, 252, 1);
