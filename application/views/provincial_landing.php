@@ -14,9 +14,9 @@
         --accent-soft: #e0e7ff;
         --muted: #6b7280;
         --text-main: #0f172a;
-        --gold: #c58a00;
+        --gold: #cfa000;
         --silver: #4b5563;
-        --bronze: #a84300;
+        --bronze: #c25a14;
     }
 
     * {
@@ -510,6 +510,34 @@
 
     .medal-filter-link[data-medal="All"] {
         color: var(--accent);
+    }
+
+    /* Medal columns tint */
+    .col-gold {
+        background: linear-gradient(180deg, rgba(255, 249, 196, 0.95), rgba(255, 236, 158, 0.75));
+        color: var(--gold);
+    }
+
+    .col-silver {
+        background: linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(229, 231, 235, 0.75));
+        color: var(--silver);
+    }
+
+    .col-bronze {
+        background: linear-gradient(180deg, rgba(255, 228, 203, 0.9), rgba(252, 196, 142, 0.7));
+        color: var(--bronze);
+    }
+
+    .winners-table tbody tr:hover td.col-gold {
+        background: linear-gradient(180deg, rgba(255, 249, 196, 0.98), rgba(255, 231, 148, 0.82));
+    }
+
+    .winners-table tbody tr:hover td.col-silver {
+        background: linear-gradient(180deg, rgba(252, 253, 255, 0.98), rgba(229, 231, 235, 0.85));
+    }
+
+    .winners-table tbody tr:hover td.col-bronze {
+        background: linear-gradient(180deg, rgba(255, 228, 203, 0.96), rgba(252, 189, 126, 0.8));
     }
 
     .clear-filter-btn {
@@ -1178,6 +1206,9 @@
                                                     $silver = $stats ? (int) $stats->silver : 0;
                                                     $bronze = $stats ? (int) $stats->bronze : 0;
                                                     $total = $stats ? (int) $stats->total_medals : 0;
+                                                    $goldClass = ($gold > 0) ? ' col-gold' : '';
+                                                    $silverClass = ($silver > 0) ? ' col-silver' : '';
+                                                    $bronzeClass = ($bronze > 0) ? ' col-bronze' : '';
                                                     $logo = isset($logoMap[$mName]) ? $logoMap[$mName] : '';
                                                     $filterUrl = site_url('provincial?municipality=' . urlencode($mName) . $groupParam);
                                                     ?>
@@ -1190,17 +1221,17 @@
                                                                 <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
                                                             </div>
                                                         </td>
-                                                        <td class="text-center font-weight-bold">
+                                                        <td class="text-center font-weight-bold<?= $goldClass; ?>">
                                                             <?php if ($hasData): ?>
                                                                 <a href="<?= $filterUrl; ?>" class="medal-filter-link" data-medal="Gold"><?= $gold; ?></a>
                                                                 <?php else: ?>—<?php endif; ?>
                                                         </td>
-                                                        <td class="text-center font-weight-bold">
+                                                        <td class="text-center font-weight-bold<?= $silverClass; ?>">
                                                             <?php if ($hasData): ?>
                                                                 <a href="<?= $filterUrl; ?>" class="medal-filter-link" data-medal="Silver"><?= $silver; ?></a>
                                                                 <?php else: ?>—<?php endif; ?>
                                                         </td>
-                                                        <td class="text-center font-weight-bold">
+                                                        <td class="text-center font-weight-bold<?= $bronzeClass; ?>">
                                                             <?php if ($hasData): ?>
                                                                 <a href="<?= $filterUrl; ?>" class="medal-filter-link" data-medal="Bronze"><?= $bronze; ?></a>
                                                                 <?php else: ?>—<?php endif; ?>
