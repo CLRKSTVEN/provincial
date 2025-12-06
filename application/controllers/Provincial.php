@@ -20,22 +20,21 @@ class Provincial extends CI_Controller
         $group = $this->input->get('group', TRUE);
         $municipality = $this->input->get('municipality', TRUE);
 
-        if ($group === 'Elementary' || $group === 'Secondary') {
-            $winners  = $this->Winners_model->get_winners_list($group, $municipality);
-            $overview = $this->Winners_model->get_overview($group, $municipality);
-            $active   = $group;
-        } else {
-            $winners  = $this->Winners_model->get_winners_list(null, $municipality);
-            $overview = $this->Winners_model->get_overview(null, $municipality);
-            $active   = 'ALL';
-        }
+        $isGrouped = ($group === 'Elementary' || $group === 'Secondary');
+
+        $winners  = $this->Winners_model->get_winners_list($isGrouped ? $group : null, $municipality);
+        $overview = $this->Winners_model->get_overview($isGrouped ? $group : null, $municipality);
+        $active   = $isGrouped ? $group : 'ALL';
+        $tally    = $isGrouped
+            ? $this->Winners_model->get_medal_tally_by_group($group)
+            : $this->Winners_model->get_medal_tally();
 
         $data = array(
             'active_group' => $active,
             'active_municipality' => $municipality,
             'winners'      => $winners,
             'overview'     => $overview,
-            'municipality_tally' => $this->Winners_model->get_medal_tally(),
+            'municipality_tally' => $tally,
             'municipalities_all' => $this->Address_model->get_municipalities(),
             'meet'         => $this->MeetSettings_model->get_settings(), // NEW
         );
