@@ -119,7 +119,7 @@ class Provincial extends CI_Controller
                         'middle_name' => $row['middle_name'],
                         'last_name'   => $row['last_name'],
                         'medal'       => $row['medal'],
-                        'municipality'=> $row['municipality'],
+                        'municipality' => $row['municipality'],
                         'school'      => $row['school'],
                         'coach'       => $row['coach'],
                     );
@@ -396,7 +396,7 @@ class Provincial extends CI_Controller
             }
 
             $this->Address_model->update_city($current, $city, $upload['file']);
-            $this->session->set_flashdata('success', 'Municipality updated.');
+            $this->session->set_flashdata('success', 'Teams updated.');
         } else {
             $this->session->set_flashdata('error', validation_errors('', ''));
         }

@@ -1203,7 +1203,7 @@
                                                 <th class="text-center">Silver</th>
                                                 <th class="text-center">Bronze</th>
                                                 <th class="text-center">Total</th>
-                                                <th class="text-right">Details</th>
+                                                <th class="text-right">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1255,7 +1255,7 @@
                                                         </td>
                                                         <td class="text-right">
                                                             <?php if ($hasData): ?>
-                                                                <a class="btn btn-sm btn-outline-primary" href="<?= $filterUrl; ?>">View Team</a>
+                                                                <a class="btn btn-sm btn-outline-primary" href="<?= $filterUrl; ?>">Details</a>
                                                             <?php else: ?>
                                                                 <span class="text-muted">No data yet</span>
                                                             <?php endif; ?>
@@ -1549,7 +1549,7 @@
                                     <?php endforeach; ?>
                                 </select>
                                 <button type="button" class="btn btn-primary btn-sm" id="municipalityViewButton">
-                                    View Team
+                                    Details
                                 </button>
                             </div>
                         </div>
@@ -1562,7 +1562,7 @@
                                         <th class="text-center">Silver</th>
                                         <th class="text-center">Bronze</th>
                                         <th class="text-center">Total</th>
-                                        <th class="text-right">Actions</th>
+                                        <th class="text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1591,7 +1591,7 @@
                                             <td class="text-right">
                                                 <?php if ($hasData): ?>
                                                     <a href="<?= $filterUrl; ?>" class="btn btn-sm btn-outline-primary">
-                                                        View Team
+                                                        Details
                                                     </a>
                                                 <?php else: ?>
                                                     <span class="text-muted small">No data yet</span>
@@ -1678,7 +1678,9 @@
                     if ($tally.length) $tally.hide();
                     $panel.stop(true, true).slideDown(160);
                     var top = $panel.offset().top - 80;
-                    $('html, body').animate({ scrollTop: top }, 200);
+                    $('html, body').animate({
+                        scrollTop: top
+                    }, 200);
                 } else {
                     $panel.stop(true, true).slideUp(140, function() {
                         if ($tally.length) $tally.show();
