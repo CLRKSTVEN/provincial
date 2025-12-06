@@ -971,12 +971,30 @@
                                 $subtitle   = isset($meet->subtitle)
                                     ? $meet->subtitle
                                     : 'Official summary of results based on reports from event committees.';
+                                $activeMunicipalityHeader = isset($active_municipality) ? trim((string) $active_municipality) : '';
+                                $headerTitle = $activeMunicipalityHeader !== ''
+                                    ? $activeMunicipalityHeader
+                                    : 'Official Results Board';
+                                $activeMunicipalityFilter = $activeMunicipalityHeader;
+                                $group = isset($active_group) ? $active_group : 'ALL';
+                                $baseLandingUrl = site_url('provincial');
+                                $makeGroupUrl = function ($targetGroup) use ($activeMunicipalityFilter, $baseLandingUrl) {
+                                    $params = array();
+                                    if ($activeMunicipalityFilter !== '') {
+                                        $params[] = 'municipality=' . urlencode($activeMunicipalityFilter);
+                                    }
+                                    if ($targetGroup === 'Elementary' || $targetGroup === 'Secondary') {
+                                        $params[] = 'group=' . urlencode($targetGroup);
+                                    }
+                                    $query = empty($params) ? '' : '?' . implode('&', $params);
+                                    return $baseLandingUrl . $query;
+                                };
                                 $isLoggedIn = isset($this) && isset($this->session) ? (bool)$this->session->userdata('logged_in') : false;
                                 $loginUrl   = $isLoggedIn ? site_url('provincial/admin') : site_url('login');
                                 $loginText  = $isLoggedIn ? 'Admin Dashboard' : 'Login';
                                 ?>
                                 <h4><?= htmlspecialchars($meet_title . ' ' . $meet_year, ENT_QUOTES, 'UTF-8'); ?></h4>
-                                <h2>Official Results Board</h2>
+                                <h2><?= htmlspecialchars($headerTitle, ENT_QUOTES, 'UTF-8'); ?></h2>
                                 <small>
                                     <?= htmlspecialchars($subtitle, ENT_QUOTES, 'UTF-8'); ?>
                                 </small>
@@ -984,16 +1002,15 @@
 
                             <div class="landing-actions">
                                 <div class="group-pills">
-                                    <?php $group = isset($active_group) ? $active_group : 'ALL'; ?>
-                                    <a href="<?= site_url(); ?>"
+                                    <a href="<?= $makeGroupUrl('ALL'); ?>"
                                         class="btn btn-sm <?= $group === 'ALL' ? 'btn-primary' : 'btn-outline-primary'; ?>">
                                         All
                                     </a>
-                                    <a href="<?= site_url('?group=Elementary'); ?>"
+                                    <a href="<?= $makeGroupUrl('Elementary'); ?>"
                                         class="btn btn-sm <?= $group === 'Elementary' ? 'btn-primary' : 'btn-outline-primary'; ?>">
                                         Elementary
                                     </a>
-                                    <a href="<?= site_url('?group=Secondary'); ?>"
+                                    <a href="<?= $makeGroupUrl('Secondary'); ?>"
                                         class="btn btn-sm <?= $group === 'Secondary' ? 'btn-primary' : 'btn-outline-primary'; ?>">
                                         Secondary
                                     </a>
@@ -1118,7 +1135,7 @@
                                                 <th class="text-center">Silver</th>
                                                 <th class="text-center">Bronze</th>
                                                 <th class="text-center">Total</th>
-                                                <th class="text-right">Actions</th>
+                                                <th class="text-right">Details</th>
                                             </tr>
                                         </thead>
                                         <tbody>
