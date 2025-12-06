@@ -266,7 +266,7 @@
                                     <?php $recent_winners = isset($recent_winners) ? $recent_winners : array(); ?>
                                     <?php if (!empty($recent_winners)): ?>
                                         <div class="table-responsive">
-                                            <table class="table table-hover mb-0 recent-winners-table">
+                                            <table class="table table-hover mb-0 recent-winners-table" id="recentWinnersTable">
                                                 <thead>
                                                     <tr>
                                                         <th>Event</th>
@@ -1026,6 +1026,16 @@
             seedDefaultRows();
 
             if ($.fn.DataTable) {
+                $('#recentWinnersTable').DataTable({
+                    pageLength: 25,
+                    lengthChange: true,
+                    order: [],
+                    columnDefs: [
+                        { targets: -1, orderable: false, searchable: false }
+                    ],
+                    autoWidth: false
+                });
+
                 eventsTable = $('#eventsTable').DataTable({
                     pageLength: 10,
                     lengthChange: false,

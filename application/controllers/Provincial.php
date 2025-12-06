@@ -66,7 +66,7 @@ class Provincial extends CI_Controller
 
             $this->form_validation->set_rules('event_id', 'Event', 'required|integer|greater_than[0]');
             $rawRows = $this->input->post('winners', TRUE);
-            list($winnerRows, $rowErrors) = $this->normalize_winner_rows($rawRows);
+            list($winnerRows, $rowErrors, $skippedRows) = $this->normalize_winner_rows($rawRows, false);
 
             if ($this->form_validation->run()) {
                 if (!empty($rowErrors)) {
@@ -131,6 +131,9 @@ class Provincial extends CI_Controller
                 $message = $count > 1
                     ? $count . ' winners saved successfully.'
                     : 'Winner saved successfully.';
+                if (!empty($skippedRows)) {
+                    $message .= ' (Skipped ' . $skippedRows . ' incomplete row' . ($skippedRows > 1 ? 's' : '') . '.)';
+                }
                 $this->session->set_flashdata('success', $message);
                 redirect('provincial/admin');
                 return;
@@ -139,7 +142,8 @@ class Provincial extends CI_Controller
 
         // pass meet settings to the admin form
         $data['meet'] = $this->MeetSettings_model->get_settings();
-        $data['recent_winners'] = $this->Winners_model->get_recent_winners(10);
+        // Show a larger slice so bulk entries aren't hidden
+        $data['recent_winners'] = $this->Winners_model->get_recent_winners(200);
         $data['event_categories'] = $this->Events_model->get_categories();
         $data['event_groups'] = $this->Events_model->get_groups();
         $data['events'] = $this->Events_model->get_events_with_meta_and_counts();
@@ -446,7 +450,7 @@ class Provincial extends CI_Controller
             ));
         }
 
-        list($winnerRows, $rowErrors) = $this->normalize_winner_rows($rawRows);
+        list($winnerRows, $rowErrors) = $this->normalize_winner_rows($rawRows, true);
 
         if ($this->form_validation->run()) {
             if (!empty($rowErrors)) {
@@ -693,15 +697,16 @@ class Provincial extends CI_Controller
      * @param array|null $rawRows
      * @return array [$validRows, $errors]
      */
-    private function normalize_winner_rows($rawRows)
+    private function normalize_winner_rows($rawRows, $strictMissing = false)
     {
         $validRows = array();
         $errors    = array();
         $allowed   = array('Gold', 'Silver', 'Bronze');
         $medalCounts = array('Gold' => 0, 'Silver' => 0, 'Bronze' => 0);
+        $skippedMissing = 0;
 
         if (!is_array($rawRows)) {
-            return array($validRows, $errors);
+            return array($validRows, $errors, $skippedMissing);
         }
 
         foreach ($rawRows as $index => $row) {
@@ -734,7 +739,11 @@ class Provincial extends CI_Controller
             }
 
             if ($first === '' || $last === '' || $municipality === '') {
-                $errors[] = $label . ' is missing first name, last name, or municipality.';
+                if ($strictMissing) {
+                    $errors[] = $label . ' is missing first name, last name, or municipality.';
+                } else {
+                    $skippedMissing++;
+                }
                 continue;
             }
 
@@ -749,7 +758,7 @@ class Provincial extends CI_Controller
             );
         }
 
-        return array($validRows, $errors);
+        return array($validRows, $errors, $skippedMissing);
     }
 
     // NEW: update meet title/year/subtitle from admin

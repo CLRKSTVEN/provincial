@@ -1390,7 +1390,6 @@
                                                 <th class="text-center">Category</th>
                                                 <th>Name</th>
                                                 <th class="text-center">Medal</th>
-                                                <th>Team</th>
                                                 <!-- School/Coach removed per request -->
                                             </tr>
                                         </thead>
@@ -1416,26 +1415,18 @@
                                                         </td>
                                                         <td class="align-middle text-center"><?= htmlspecialchars($w->event_group ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
                                                         <td class="align-middle text-center"><?= htmlspecialchars($w->category ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
-                                                        <td class="align-middle"><?= htmlspecialchars($fullName, ENT_QUOTES, 'UTF-8'); ?></td>
-                                                        <td class="align-middle text-center">
-                                                            <span class="chip-medal <?= $chipClass; ?>"><?= htmlspecialchars($medal, ENT_QUOTES, 'UTF-8'); ?></span>
-                                                        </td>
-                                                        <td class="align-middle">
-                                                            <div class="d-flex align-items-center" style="gap:8px;">
-                                                                <?php if (!empty($teamLogo)): ?>
-                                                                    <img src="<?= base_url('upload/team_logos/' . $teamLogo); ?>" alt="<?= htmlspecialchars($selectedName, ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
-                                                                <?php endif; ?>
-                                                                <span><?= htmlspecialchars($selectedName, ENT_QUOTES, 'UTF-8'); ?></span>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            <?php else: ?>
-                                                <tr class="no-results-row">
-                                                    <td colspan="6" class="text-center py-5 text-muted">
-                                                        No encoded events for this team yet.
+                                                    <td class="align-middle"><?= htmlspecialchars($fullName, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                    <td class="align-middle text-center">
+                                                        <span class="chip-medal <?= $chipClass; ?>"><?= htmlspecialchars($medal, ENT_QUOTES, 'UTF-8'); ?></span>
                                                     </td>
                                                 </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr class="no-results-row">
+                                                <td colspan="5" class="text-center py-5 text-muted">
+                                                    No encoded events for this team yet.
+                                                </td>
+                                            </tr>
                                             <?php endif; ?>
                                         </tbody>
                                     </table>
