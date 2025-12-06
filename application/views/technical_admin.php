@@ -193,16 +193,20 @@
                        <label>Event</label>
                         <select name="event_id" id="addEventSelect" class="form-control form-control-lg" required>
                            <option value="">Select event</option>
-                           <?php foreach ($events as $ev): ?>
-                                <option value="<?= (int) $ev->event_id; ?>">
+                            <?php foreach ($events as $ev): ?>
+                                <option value="<?= (int) $ev->event_id; ?>"
+                                    data-group-id="<?= isset($ev->group_id) ? (int) $ev->group_id : ''; ?>"
+                                    data-group-name="<?= htmlspecialchars($ev->group_name ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-category-id="<?= isset($ev->category_id) ? (int) $ev->category_id : ''; ?>"
+                                    data-category-name="<?= htmlspecialchars($ev->category_name ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                     <?= htmlspecialchars($ev->event_name, ENT_QUOTES, 'UTF-8'); ?>
                                 </option>
                             <?php endforeach; ?>
-                       </select>
-                   </div>
-                   <div class="form-row">
-                       <div class="form-group col-md-6">
-                           <label>Group</label>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Group</label>
                             <select name="event_group" id="addGroupInput" class="form-control form-control-lg" required>
                                 <option value="">Select group</option>
                                 <?php foreach ($event_groups as $g): ?>
@@ -278,7 +282,11 @@
                         <select name="event_id" id="editEventSelect" class="form-control" required>
                             <option value="">Select event</option>
                             <?php foreach ($events as $ev): ?>
-                                <option value="<?= (int) $ev->event_id; ?>">
+                                <option value="<?= (int) $ev->event_id; ?>"
+                                    data-group-id="<?= isset($ev->group_id) ? (int) $ev->group_id : ''; ?>"
+                                    data-group-name="<?= htmlspecialchars($ev->group_name ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-category-id="<?= isset($ev->category_id) ? (int) $ev->category_id : ''; ?>"
+                                    data-category-name="<?= htmlspecialchars($ev->category_name ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                     <?= htmlspecialchars($ev->event_name, ENT_QUOTES, 'UTF-8'); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -331,6 +339,51 @@
 
     <script>
         $(function() {
+            var eventsMeta = <?= json_encode(array_map(function ($ev) {
+                return array(
+                    'id' => (int)$ev->event_id,
+                    'name' => $ev->event_name,
+                    'group_id' => isset($ev->group_id) ? (int)$ev->group_id : null,
+                    'group_name' => $ev->group_name ?? '',
+                    'category_id' => isset($ev->category_id) ? (int)$ev->category_id : null,
+                    'category_name' => $ev->category_name ?? '',
+                );
+            }, $events)); ?>;
+
+            function applyEventMeta($eventSelect, $groupSelect, $catSelect) {
+                var id = parseInt($eventSelect.val() || '0', 10);
+                var match = eventsMeta.find(function(ev){ return ev.id === id; });
+
+                $groupSelect.empty().append('<option value="">Select group</option>');
+                $catSelect.empty().append('<option value="">Select category</option>');
+
+                if (match) {
+                    if (match.group_id || match.group_name) {
+                        $groupSelect.append(
+                            $('<option>', {
+                                value: match.group_id || match.group_name,
+                                text: match.group_name || 'Unspecified'
+                            })
+                        ).val(match.group_id || match.group_name);
+                    }
+                    if (match.category_id || match.category_name) {
+                        $catSelect.append(
+                            $('<option>', {
+                                value: match.category_id || match.category_name,
+                                text: match.category_name || 'Unspecified'
+                            })
+                        ).val(match.category_id || match.category_name);
+                    }
+                }
+            }
+
+            $('#addEventSelect').on('change', function() {
+                applyEventMeta($('#addEventSelect'), $('#addGroupInput'), $('#addCategoryInput'));
+            });
+            $('#editEventSelect').on('change', function() {
+                applyEventMeta($('#editEventSelect'), $('#editGroupInput'), $('#editCategoryInput'));
+            });
+
             $('#addOfficialRow').on('click', function() {
                 var row = `
                     <div class="form-row official-row mb-2">
@@ -366,6 +419,7 @@
                 $('#editEventSelect').val(eventId);
                 $('#editGroupInput').val($btn.data('group') || '');
                 $('#editCategoryInput').val($btn.data('category') || '');
+                applyEventMeta($('#editEventSelect'), $('#editGroupInput'), $('#editCategoryInput'));
                 $('#editTechnicalModal').modal('show');
             });
 
