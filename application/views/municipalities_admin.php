@@ -38,6 +38,17 @@
         justify-content: center;
         border-radius: 10px;
     }
+
+    .team-logo {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        aspect-ratio: 1 / 1;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
 </style>
 
 <body>
@@ -119,7 +130,7 @@
                                                         <tr>
                                                             <td class="align-middle">
                                                                 <?php if (!empty($logo)): ?>
-                                                                    <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($city, ENT_QUOTES, 'UTF-8'); ?> logo" style="height:38px;width:auto;border-radius:6px;">
+                                                                    <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($city, ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
                                                                 <?php else: ?>
                                                                     <span class="text-muted">—</span>
                                                                 <?php endif; ?>

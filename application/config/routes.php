@@ -15,6 +15,7 @@ $route['provincial']           = 'provincial/index';      // optional
 $route['provincial/standings'] = 'provincial/index';      // same landing
 $route['provincial/admin']     = 'provincial/admin';
 $route['provincial/municipalities'] = 'provincial/municipalities';
+$route['provincial/teams'] = 'provincial/municipalities';
 $route['provincial/technical'] = 'provincial/technical';
 
 $route['404_override'] = '';

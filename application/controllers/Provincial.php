@@ -342,7 +342,7 @@ class Provincial extends CI_Controller
                 $upload = $this->handle_logo_upload('logo');
                 if ($upload['error']) {
                     $this->session->set_flashdata('error', $upload['message']);
-                    redirect('provincial/municipalities');
+                    redirect('provincial/teams');
                     return;
                 }
 
@@ -356,7 +356,7 @@ class Provincial extends CI_Controller
             $this->session->set_flashdata('error', validation_errors('', ''));
         }
 
-        redirect('provincial/municipalities');
+        redirect('provincial/teams');
     }
 
     public function update_municipality()
@@ -371,27 +371,27 @@ class Provincial extends CI_Controller
 
             if (!$this->Address_model->city_exists($current)) {
                 $this->session->set_flashdata('error', 'Municipality not found.');
-                redirect('provincial/municipalities');
+                redirect('provincial/teams');
                 return;
             }
 
             if ($this->Address_model->city_exists($city) && strcasecmp($current, $city) !== 0) {
                 $this->session->set_flashdata('error', 'Another entry already uses that municipality.');
-                redirect('provincial/municipalities');
+                redirect('provincial/teams');
                 return;
             }
 
             $upload = $this->handle_logo_upload('logo');
             if ($upload['error']) {
                 $this->session->set_flashdata('error', $upload['message']);
-                redirect('provincial/municipalities');
+                redirect('provincial/teams');
                 return;
             }
 
             // If name unchanged and no logo uploaded, nothing to do
             if ($current === $city && empty($upload['file'])) {
                 $this->session->set_flashdata('success', 'No changes to save.');
-                redirect('provincial/municipalities');
+                redirect('provincial/teams');
                 return;
             }
 
@@ -401,7 +401,7 @@ class Provincial extends CI_Controller
             $this->session->set_flashdata('error', validation_errors('', ''));
         }
 
-        redirect('provincial/municipalities');
+        redirect('provincial/teams');
     }
 
     public function delete_municipality()
@@ -422,7 +422,7 @@ class Provincial extends CI_Controller
             $this->session->set_flashdata('error', validation_errors('', ''));
         }
 
-        redirect('provincial/municipalities');
+        redirect('provincial/teams');
     }
 
     public function update_winner()

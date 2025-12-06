@@ -487,6 +487,18 @@
         background: #f9fafb;
     }
 
+    .team-logo {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        aspect-ratio: 1 / 1;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        background: #ffffff;
+        padding: 0;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+
     .medal-filter-link,
     .medal-filter {
         font-weight: 800;
@@ -1216,7 +1228,7 @@
                                                         <td class="align-middle">
                                                             <div class="d-flex align-items-center" style="gap:10px;">
                                                                 <?php if (!empty($logo)): ?>
-                                                                    <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" style="height:36px;width:auto;border-radius:6px;">
+                                                                    <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
                                                                 <?php endif; ?>
                                                                 <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
                                                             </div>
@@ -1324,7 +1336,7 @@
                                                         <td>
                                                             <div class="d-flex align-items-center" style="gap:8px;">
                                                                 <?php if (!empty($teamLogo)): ?>
-                                                                    <img src="<?= base_url('upload/team_logos/' . $teamLogo); ?>" alt="<?= htmlspecialchars($w->municipality ?? '', ENT_QUOTES, 'UTF-8'); ?> logo" style="height:24px;width:auto;border-radius:6px;">
+                                                                    <img src="<?= base_url('upload/team_logos/' . $teamLogo); ?>" alt="<?= htmlspecialchars($w->municipality ?? '', ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
                                                                 <?php endif; ?>
                                                                 <span><?= htmlspecialchars($w->municipality ?? '-', ENT_QUOTES, 'UTF-8'); ?></span>
                                                             </div>
@@ -1411,7 +1423,7 @@
                                                         <td class="align-middle">
                                                             <div class="d-flex align-items-center" style="gap:8px;">
                                                                 <?php if (!empty($teamLogo)): ?>
-                                                                    <img src="<?= base_url('upload/team_logos/' . $teamLogo); ?>" alt="<?= htmlspecialchars($selectedName, ENT_QUOTES, 'UTF-8'); ?> logo" style="height:28px;width:auto;border-radius:6px;">
+                                                                    <img src="<?= base_url('upload/team_logos/' . $teamLogo); ?>" alt="<?= htmlspecialchars($selectedName, ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
                                                                 <?php endif; ?>
                                                                 <span><?= htmlspecialchars($selectedName, ENT_QUOTES, 'UTF-8'); ?></span>
                                                             </div>
@@ -1567,7 +1579,7 @@
                                             <td class="align-middle">
                                                 <div class="d-flex align-items-center" style="gap:10px;">
                                                     <?php if (!empty($logo)): ?>
-                                                        <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" style="height:38px;width:auto;border-radius:6px;">
+                                                        <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
                                                     <?php endif; ?>
                                                     <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
                                                 </div>

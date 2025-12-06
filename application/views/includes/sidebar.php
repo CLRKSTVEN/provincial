@@ -17,7 +17,7 @@
             $currentUri = trim(uri_string(), '/');
             $segment1   = strtolower($this->uri->segment(1) ?? '');
             $segment2   = strtolower($this->uri->segment(2) ?? '');
-            $municipalityActive = stripos($currentUri, trim('provincial/municipalities', '/')) === 0;
+            $municipalityActive = stripos($currentUri, trim('provincial/teams', '/')) === 0;
             ?>
             <div id="sidebar-menu">
                 <ul class="metismenu" id="side-menu">
@@ -129,7 +129,7 @@
                     </li>
 
                     <li class="<?= $municipalityActive ? 'mm-active' : ''; ?>">
-                        <a href="<?= base_url('provincial/municipalities'); ?>" class="waves-effect">
+                        <a href="<?= base_url('provincial/teams'); ?>" class="waves-effect">
                             <i class="mdi mdi-city"></i>
                             <span> Teams </span>
                         </a>
@@ -204,7 +204,7 @@
                             $sectionPrefixes  = ['Page/manageSections', 'Page/addSection', 'Page/editSection'];
                             $isSectionActive  = $manageMatch($sectionPrefixes);
                             $isUserActive     = stripos($currentUri, trim('Page/userAccounts', '/')) === 0;
-                            $isMunicipalityActive = stripos($currentUri, trim('provincial/municipalities', '/')) === 0;
+                            $isMunicipalityActive = stripos($currentUri, trim('provincial/teams', '/')) === 0;
                             $isTechnicalActive = stripos($currentUri, trim('provincial/technical', '/')) === 0;
                             $isReportActive   = stripos($currentUri, trim('provincial/report', '/')) === 0;
 
@@ -223,7 +223,7 @@
                                 <a class="<?= $sectionLinkClass; ?>" href="<?= base_url('Page/manageSections'); ?>"> Sections </a>
                             </li>
                             <li>
-                                <a class="<?= $municipalityLinkClass; ?>" href="<?= base_url('provincial/municipalities'); ?>"> Teams </a>
+                                <a class="<?= $municipalityLinkClass; ?>" href="<?= base_url('provincial/teams'); ?>"> Teams </a>
                             </li>
                             <li>
                                 <a class="<?= $technicalLinkClass; ?>" href="<?= base_url('provincial/technical'); ?>"> Technical Officials </a>
@@ -1254,7 +1254,7 @@
                 <ul class="metismenu" id="side-menu">
                     <li class="menu-title">Navigation</li>
                     <?php
-                    $municipalityActive = stripos(trim(uri_string(), '/'), trim('provincial/municipalities', '/')) === 0;
+                    $municipalityActive = stripos(trim(uri_string(), '/'), trim('provincial/teams', '/')) === 0;
                     $technicalActive = stripos(trim(uri_string(), '/'), trim('provincial/technical', '/')) === 0;
                     ?>
                     <li>
@@ -1264,7 +1264,7 @@
                         </a>
                     </li>
                     <li class="<?= $municipalityActive ? 'mm-active' : ''; ?>">
-                        <a href="<?= base_url('provincial/municipalities'); ?>" class="waves-effect">
+                        <a href="<?= base_url('provincial/teams'); ?>" class="waves-effect">
                             <i class="mdi mdi-city"></i>
                             <span> Teams </span>
                         </a>
