@@ -164,6 +164,38 @@ class Provincial extends CI_Controller
         $this->load->view('technical_admin', $data);
     }
 
+    public function report()
+    {
+        $this->require_login();
+        $selectedId = (int) $this->input->get('event_id', TRUE);
+        $events = $this->Events_model->get_events_with_meta_and_counts();
+        $selectedEvent = null;
+        foreach ($events as $ev) {
+            if ((int)$ev->event_id === $selectedId) {
+                $selectedEvent = $ev;
+                break;
+            }
+        }
+
+        $winners = array();
+        $technical = array();
+        if ($selectedEvent) {
+            $winners = $this->Winners_model->get_winners_by_event($selectedId);
+            $technical = $this->Technical_model->get_by_event($selectedId);
+        }
+
+        $data = array(
+            'meet' => $this->MeetSettings_model->get_settings(),
+            'events' => $events,
+            'selected_event' => $selectedEvent,
+            'winners' => $winners,
+            'technical' => $technical,
+            'selected_id' => $selectedId,
+        );
+
+        $this->load->view('report_event', $data);
+    }
+
     public function add_technical()
     {
         $this->require_login();

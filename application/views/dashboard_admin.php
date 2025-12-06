@@ -583,50 +583,35 @@
                             $eventSeen = array();
                             foreach ($events_list as $event):
                                 $eventName = trim($event->event_name);
-                                $categoryName = trim($event->category_name ?? '');
-                                $labelKey = strtolower($eventName . '|' . $categoryName);
+                                $labelKey = strtolower($eventName);
                                 if (isset($eventSeen[$labelKey])) {
-                                    continue; // avoid duplicate event/category combos
+                                    continue; // avoid duplicate event names
                                 }
                                 $eventSeen[$labelKey] = true;
-                                $label = $eventName;
-                                if ($categoryName !== '' && stripos($eventName, $categoryName) === false) {
-                                    $label .= ' – ' . $categoryName;
-                                }
                             ?>
                                 <option value="<?= (int) $event->event_id; ?>"
                                     data-group-name="<?= htmlspecialchars($event->group_name ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                     data-category-name="<?= htmlspecialchars($event->category_name ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-                                    <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?>
+                                    <?= htmlspecialchars($eventName, ENT_QUOTES, 'UTF-8'); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <small class="form-text text-muted">Select the event; group and category auto-fill below.</small>
+                        <small class="form-text text-muted">Select the event; pick the matching group and category below.</small>
                     </div>
 
                     <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label>Group</label>
-                            <select name="group_id" id="winnerGroupSelect" class="form-control">
-                                <option value="">-- Select Group --</option>
-                                <?php foreach ($event_groups_list as $group): ?>
-                                    <option value="<?= (int) $group->group_id; ?>">
-                                        <?= htmlspecialchars($group->group_name, ENT_QUOTES, 'UTF-8'); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label>Category</label>
-                            <select name="category_id" id="winnerCategorySelect" class="form-control">
-                                <option value="">-- Select Category --</option>
-                                <?php foreach ($event_categories_list as $category): ?>
-                                    <option value="<?= (int) $category->category_id; ?>">
-                                        <?= htmlspecialchars($category->category_name, ENT_QUOTES, 'UTF-8'); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                    <div class="form-group col-md-6">
+                        <label>Group</label>
+                        <select name="group_id" id="winnerGroupSelect" class="form-control">
+                            <option value="">-- Select Group --</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Category</label>
+                        <select name="category_id" id="winnerCategorySelect" class="form-control">
+                            <option value="">-- Select Category --</option>
+                        </select>
+                    </div>
                     </div>
 
                     <div class="alert alert-info py-2">
@@ -772,6 +757,16 @@
             var $eventNameInput = $('#eventName');
             var $eventGroupSelect = $('#eventGroup');
             var $eventCategorySelect = $('#eventCategory');
+            var eventsMeta = <?= json_encode(array_map(function ($ev) {
+                return array(
+                    'id' => (int)$ev->event_id,
+                    'name' => $ev->event_name,
+                    'group_id' => isset($ev->group_id) ? (int)$ev->group_id : null,
+                    'group_name' => $ev->group_name ?? '',
+                    'category_id' => isset($ev->category_id) ? (int)$ev->category_id : null,
+                    'category_name' => $ev->category_name ?? '',
+                );
+            }, $events_list)); ?>;
             var medalContainers = {
                 Gold: $('#goldRows'),
                 Silver: $('#silverRows'),
@@ -799,6 +794,54 @@
                 $eventNameInput.val(data.name || '');
                 $eventGroupSelect.val(data.group_id || '');
                 $eventCategorySelect.val(data.category_name || '');
+            }
+            function rebuildGroupAndCategoryOptions(eventId) {
+                var selected = eventsMeta.find(function (ev) { return ev.id === parseInt(eventId, 10); });
+                var nameKey = selected ? (selected.name || '').toLowerCase() : '';
+
+                // Build unique group options for matching event name
+                var groups = {};
+                eventsMeta.forEach(function (ev) {
+                    if (!nameKey || (ev.name || '').toLowerCase() === nameKey) {
+                        var gKey = (ev.group_id || '') + '|' + (ev.group_name || '');
+                        groups[gKey] = { id: ev.group_id, name: ev.group_name };
+                    }
+                });
+                $winnerGroupSelect.empty().append('<option value="">-- Select Group --</option>');
+                Object.values(groups).forEach(function (g) {
+                    $winnerGroupSelect.append(
+                        $('<option>', { value: g.id || g.name, text: g.name || 'Unspecified' })
+                    );
+                });
+
+                // Build unique categories for matching event name
+                var categories = {};
+                eventsMeta.forEach(function (ev) {
+                    if (!nameKey || (ev.name || '').toLowerCase() === nameKey) {
+                        var cKey = (ev.category_id || '') + '|' + (ev.category_name || '');
+                        categories[cKey] = { id: ev.category_id, name: ev.category_name };
+                    }
+                });
+                $winnerCategorySelect.empty().append('<option value="">-- Select Category --</option>');
+                Object.values(categories).forEach(function (c) {
+                    if (!c.name) return;
+                    $winnerCategorySelect.append(
+                        $('<option>', { value: c.id || c.name, text: c.name })
+                    );
+                });
+
+                if (selected) {
+                    if (selected.group_id) {
+                        $winnerGroupSelect.val(selected.group_id);
+                    } else if (selected.group_name) {
+                        $winnerGroupSelect.val(selected.group_name);
+                    }
+                    if (selected.category_id) {
+                        $winnerCategorySelect.val(selected.category_id);
+                    } else if (selected.category_name) {
+                        $winnerCategorySelect.val(selected.category_name);
+                    }
+                }
             }
 
             function clearAllRows() {
@@ -908,8 +951,8 @@
                 $winnerForm.attr('action', createAction);
                 $('#winnerIdField').val('');
                 $eventSelect.val('').trigger('change');
-                $winnerGroupSelect.val('');
-                $winnerCategorySelect.val('');
+                $winnerGroupSelect.empty().append('<option value="">-- Select Group --</option>');
+                $winnerCategorySelect.empty().append('<option value="">-- Select Category --</option>');
                 $winnerSubmitBtn.html('<i class="mdi mdi-content-save-outline"></i> Save Winners');
                 $winnerModalLabel.text('Add Winners');
                 seedDefaultRows();
@@ -933,6 +976,11 @@
 
             $('#openWinnerModal').on('click', function() {
                 setCreateMode();
+            });
+
+            $eventSelect.on('change', function() {
+                var val = $(this).val() || '';
+                rebuildGroupAndCategoryOptions(val);
             });
 
             $('#openAddEventModal').on('click', function() {

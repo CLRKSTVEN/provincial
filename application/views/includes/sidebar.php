@@ -135,10 +135,17 @@
                         </a>
                     </li>
                     <?php $technicalActive = stripos($currentUri, trim('provincial/technical', '/')) === 0; ?>
+                    <?php $reportActive = stripos($currentUri, trim('provincial/report', '/')) === 0; ?>
                     <li class="<?= $technicalActive ? 'mm-active' : ''; ?>">
                         <a href="<?= base_url('provincial/technical'); ?>" class="waves-effect">
                             <i class="mdi mdi-account-tie"></i>
                             <span> Technical Officials </span>
+                        </a>
+                    </li>
+                    <li class="<?= $reportActive ? 'mm-active' : ''; ?>">
+                        <a href="<?= base_url('provincial/report'); ?>" class="waves-effect">
+                            <i class="mdi mdi-printer"></i>
+                            <span> Generate Report </span>
                         </a>
                     </li>
 
@@ -199,12 +206,14 @@
                             $isUserActive     = stripos($currentUri, trim('Page/userAccounts', '/')) === 0;
                             $isMunicipalityActive = stripos($currentUri, trim('provincial/municipalities', '/')) === 0;
                             $isTechnicalActive = stripos($currentUri, trim('provincial/technical', '/')) === 0;
+                            $isReportActive   = stripos($currentUri, trim('provincial/report', '/')) === 0;
 
                             $courseLinkClass  = $isCourseActive ? 'active' : '';
                             $sectionLinkClass = $isSectionActive ? 'active' : '';
                             $userLinkClass    = $isUserActive ? 'active' : '';
                             $municipalityLinkClass = $isMunicipalityActive ? 'active' : '';
                             $technicalLinkClass = $isTechnicalActive ? 'active' : '';
+                            $reportLinkClass  = $isReportActive ? 'active' : '';
                             ?>
                             <li>
                                 <a class="<?= $courseLinkClass; ?>" href="<?= base_url('Settings/Department'); ?>"> Course </a>
@@ -218,6 +227,9 @@
                             </li>
                             <li>
                                 <a class="<?= $technicalLinkClass; ?>" href="<?= base_url('provincial/technical'); ?>"> Technical Officials </a>
+                            </li>
+                            <li>
+                                <a class="<?= $reportLinkClass; ?>" href="<?= base_url('provincial/report'); ?>"> Generate Report </a>
                             </li>
                             <li>
                                 <a class="<?= $userLinkClass; ?>" href="<?= base_url('Page/userAccounts'); ?>"> Admin Accounts </a>
@@ -345,6 +357,13 @@
 
                         </a>
 
+                    </li>
+
+                    <li>
+                        <a href="<?= base_url('provincial/report'); ?>" class="waves-effect">
+                            <i class="mdi mdi-printer"></i>
+                            <span> Generate Report </span>
+                        </a>
                     </li>
 
                     <li>

@@ -73,4 +73,20 @@ class Technical_model extends CI_Model
     {
         return $this->db->delete('technical_officials', array('id' => (int) $id));
     }
+
+    public function get_by_event($eventId)
+    {
+        $eventId = (int) $eventId;
+        if ($eventId <= 0) {
+            return array();
+        }
+
+        $this->db->select('t.*', false);
+        $this->db->from('technical_officials t');
+        $this->db->where('t.event_id', $eventId);
+        $this->db->order_by("FIELD(role, 'Tournament Manager', 'Technical Official')", '', false);
+        $this->db->order_by('name', 'ASC');
+
+        return $this->db->get()->result();
+    }
 }

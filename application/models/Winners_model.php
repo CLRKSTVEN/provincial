@@ -18,6 +18,37 @@ class Winners_model extends CI_Model
         return $this->db->delete('winners', array('id' => (int) $id));
     }
 
+    public function get_winners_by_event($event_id)
+    {
+        $event_id = (int) $event_id;
+        if ($event_id <= 0) {
+            return array();
+        }
+
+        $this->db->select("
+            id,
+            event_id,
+            event_name,
+            event_group,
+            category,
+            first_name,
+            middle_name,
+            last_name,
+            CONCAT(last_name, ', ', first_name, ' ', COALESCE(middle_name, '')) AS full_name,
+            medal,
+            municipality,
+            school,
+            coach,
+            created_at
+        ", false);
+        $this->db->from('winners');
+        $this->db->where('event_id', $event_id);
+        $this->db->order_by("FIELD(medal, 'Gold', 'Silver', 'Bronze')", '', false);
+        $this->db->order_by('full_name', 'ASC');
+
+        return $this->db->get()->result();
+    }
+
     public function get_winner($id)
     {
         return $this->db
