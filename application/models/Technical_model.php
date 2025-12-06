@@ -5,10 +5,28 @@ class Technical_model extends CI_Model
 {
     public function get_all()
     {
+        $hasEvent = $this->db->field_exists('event_id', 'technical_officials');
+
+        if ($hasEvent) {
+            $this->db->select("
+                t.*,
+                COALESCE(t.event_name, em.event_name)       AS event_name_display,
+                COALESCE(t.event_group, eg.group_name)      AS event_group_display,
+                COALESCE(t.category, ec.category_name)      AS category_display
+            ", false);
+            $this->db->from('technical_officials t');
+            $this->db->join('event_master em', 'em.event_id = t.event_id', 'left');
+            $this->db->join('event_groups eg', 'eg.group_id = em.group_id', 'left');
+            $this->db->join('event_categories ec', 'ec.category_id = em.category_id', 'left');
+        } else {
+            $this->db->select('t.*', false);
+            $this->db->from('technical_officials t');
+        }
+
         return $this->db
             ->order_by("FIELD(role, 'Tournament Manager', 'Technical Official')", '', false)
             ->order_by('name', 'ASC')
-            ->get('technical_officials')
+            ->get()
             ->result();
     }
 
@@ -17,19 +35,36 @@ class Technical_model extends CI_Model
         return $this->db->get_where('technical_officials', array('id' => (int) $id))->row();
     }
 
-    public function create($name, $role)
+    public function create($name, $role, $eventId = null, $eventName = null, $eventGroup = null, $category = null)
     {
-        return $this->db->insert('technical_officials', array(
+        $data = array(
             'name' => $name,
             'role' => $role,
-        ));
+        );
+
+        if ($this->db->field_exists('event_id', 'technical_officials')) {
+            $data['event_id'] = $eventId;
+            $data['event_name'] = $eventName;
+            $data['event_group'] = $eventGroup;
+            $data['category'] = $category;
+        }
+
+        return $this->db->insert('technical_officials', $data);
     }
 
-    public function update($id, $name, $role)
+    public function update($id, $name, $role, $eventId = null, $eventName = null, $eventGroup = null, $category = null)
     {
+        $data = array('name' => $name, 'role' => $role);
+        if ($this->db->field_exists('event_id', 'technical_officials')) {
+            $data['event_id'] = $eventId;
+            $data['event_name'] = $eventName;
+            $data['event_group'] = $eventGroup;
+            $data['category'] = $category;
+        }
+
         return $this->db->update(
             'technical_officials',
-            array('name' => $name, 'role' => $role),
+            $data,
             array('id' => (int) $id)
         );
     }

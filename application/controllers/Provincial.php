@@ -158,21 +158,57 @@ class Provincial extends CI_Controller
         $this->require_login();
         $data['meet'] = $this->MeetSettings_model->get_settings();
         $data['technical'] = $this->Technical_model->get_all();
+        $data['events'] = $this->Events_model->get_events_with_meta_and_counts();
+        $data['event_groups'] = $this->Events_model->get_groups();
+        $data['event_categories'] = $this->Events_model->get_categories();
         $this->load->view('technical_admin', $data);
     }
 
     public function add_technical()
     {
         $this->require_login();
-        $this->form_validation->set_rules('name', 'Name', 'required|trim');
-        $this->form_validation->set_rules('role', 'Role', 'required|in_list[Tournament Manager,Technical Official]');
+        $this->form_validation->set_rules('event_id', 'Event', 'required|integer|greater_than[0]');
 
         if ($this->form_validation->run()) {
-            $this->Technical_model->create(
-                $this->input->post('name', TRUE),
-                $this->input->post('role', TRUE)
-            );
-            $this->session->set_flashdata('success', 'Entry added.');
+            $eventId = (int) $this->input->post('event_id', TRUE);
+            $event = $this->Events_model->get_event_details($eventId);
+            if (!$event) {
+                $this->session->set_flashdata('error', 'Selected event not found.');
+                redirect('provincial/technical');
+                return;
+            }
+
+            $names = $this->input->post('names');
+            $roles = $this->input->post('roles');
+            $groupInput = trim((string) $this->input->post('event_group', TRUE));
+            $categoryInput = trim((string) $this->input->post('event_category', TRUE));
+            $groupLabel = $groupInput !== '' ? $groupInput : ($event->group_name ?? '');
+            $categoryLabel = $categoryInput !== '' ? $categoryInput : ($event->category_name ?? '');
+            $saved = 0;
+            if (is_array($names) && is_array($roles)) {
+                foreach ($names as $idx => $name) {
+                    $name = trim((string) $name);
+                    $role = isset($roles[$idx]) ? $roles[$idx] : 'Technical Official';
+                    if ($name === '') {
+                        continue;
+                    }
+                    $this->Technical_model->create(
+                        $name,
+                        $role,
+                        $eventId,
+                        $event->event_name ?? '',
+                        $groupLabel,
+                        $categoryLabel
+                    );
+                    $saved++;
+                }
+            }
+
+            if ($saved > 0) {
+                $this->session->set_flashdata('success', $saved . ' entr' . ($saved > 1 ? 'ies' : 'y') . ' added.');
+            } else {
+                $this->session->set_flashdata('error', 'Please add at least one name.');
+            }
         } else {
             $this->session->set_flashdata('error', validation_errors('', ''));
         }
@@ -186,6 +222,9 @@ class Provincial extends CI_Controller
         $this->form_validation->set_rules('id', 'ID', 'required|integer|greater_than[0]');
         $this->form_validation->set_rules('name', 'Name', 'required|trim');
         $this->form_validation->set_rules('role', 'Role', 'required|in_list[Tournament Manager,Technical Official]');
+        $this->form_validation->set_rules('event_id', 'Event', 'required|integer|greater_than[0]');
+        $this->form_validation->set_rules('event_group', 'Group', 'trim');
+        $this->form_validation->set_rules('event_category', 'Category', 'trim');
 
         if ($this->form_validation->run()) {
             $id = (int) $this->input->post('id', TRUE);
@@ -196,10 +235,27 @@ class Provincial extends CI_Controller
                 return;
             }
 
+            $eventId = (int) $this->input->post('event_id', TRUE);
+            $event = $this->Events_model->get_event_details($eventId);
+            if (!$event) {
+                $this->session->set_flashdata('error', 'Selected event not found.');
+                redirect('provincial/technical');
+                return;
+            }
+
+            $groupInput = trim((string) $this->input->post('event_group', TRUE));
+            $categoryInput = trim((string) $this->input->post('event_category', TRUE));
+            $groupLabel = $groupInput !== '' ? $groupInput : ($event->group_name ?? '');
+            $categoryLabel = $categoryInput !== '' ? $categoryInput : ($event->category_name ?? '');
+
             $this->Technical_model->update(
                 $id,
                 $this->input->post('name', TRUE),
-                $this->input->post('role', TRUE)
+                $this->input->post('role', TRUE),
+                $eventId,
+                $event->event_name ?? '',
+                $groupLabel,
+                $categoryLabel
             );
             $this->session->set_flashdata('success', 'Entry updated.');
         } else {

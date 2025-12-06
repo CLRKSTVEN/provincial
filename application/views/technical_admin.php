@@ -51,6 +51,9 @@
                 <div class="container-fluid">
                     <?php
                     $technical = isset($technical) ? $technical : array();
+                    $events = isset($events) ? $events : array();
+                    $event_groups = isset($event_groups) ? $event_groups : array();
+                    $event_categories = isset($event_categories) ? $event_categories : array();
                     $meet_title = isset($meet->meet_title) ? $meet->meet_title : 'Provincial Meet';
                     $meet_year  = isset($meet->meet_year)  ? $meet->meet_year  : date('Y');
                     ?>
@@ -109,6 +112,9 @@
                                                 <tr>
                                                     <th>Name</th>
                                                     <th>Role</th>
+                                                    <th>Event</th>
+                                                    <th>Group</th>
+                                                    <th>Category</th>
                                                     <th class="text-right" style="width: 140px;">Actions</th>
                                                 </tr>
                                             </thead>
@@ -118,6 +124,9 @@
                                                         <tr>
                                                             <td><?= htmlspecialchars($row->name, ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td><?= htmlspecialchars($row->role, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <td><?= htmlspecialchars($row->event_name_display ?? $row->event_name ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <td><?= htmlspecialchars($row->event_group_display ?? $row->event_group ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <td><?= htmlspecialchars($row->category_display ?? $row->category ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td class="text-right">
                                                                 <button
                                                                     type="button"
@@ -125,6 +134,9 @@
                                                                     data-id="<?= (int) $row->id; ?>"
                                                                     data-name="<?= htmlspecialchars($row->name, ENT_QUOTES, 'UTF-8'); ?>"
                                                                     data-role="<?= htmlspecialchars($row->role, ENT_QUOTES, 'UTF-8'); ?>"
+                                                                    data-group="<?= htmlspecialchars($row->event_group ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                                    data-category="<?= htmlspecialchars($row->category ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                                    data-event_id="<?= isset($row->event_id) ? (int) $row->event_id : ''; ?>"
                                                                     title="Edit official" data-toggle="tooltip" data-placement="top">
                                                                     <i class="mdi mdi-pencil" aria-hidden="true"></i>
                                                                     <span class="sr-only">Edit official</span>
@@ -143,7 +155,7 @@
                                                     <?php endforeach; ?>
                                                 <?php else: ?>
                                                     <tr>
-                                                        <td colspan="3" class="text-center text-muted">No technical officials yet.</td>
+                                                        <td colspan="6" class="text-center text-muted">No technical officials yet.</td>
                                                     </tr>
                                                 <?php endif; ?>
                                             </tbody>
@@ -167,7 +179,7 @@
 
     <!-- Add Modal -->
     <div class="modal fade" id="addTechnicalModal" tabindex="-1" role="dialog" aria-labelledby="addTechnicalModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addTechnicalModalLabel">Add Entry</h5>
@@ -177,16 +189,66 @@
                 </div>
                 <?= form_open('provincial/add_technical'); ?>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>Name</label>
-                        <input type="text" name="name" class="form-control" required>
+                   <div class="form-group">
+                       <label>Event</label>
+                        <select name="event_id" id="addEventSelect" class="form-control form-control-lg" required>
+                           <option value="">Select event</option>
+                           <?php foreach ($events as $ev): ?>
+                                <option value="<?= (int) $ev->event_id; ?>">
+                                    <?= htmlspecialchars($ev->event_name, ENT_QUOTES, 'UTF-8'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                       </select>
+                   </div>
+                   <div class="form-row">
+                       <div class="form-group col-md-6">
+                           <label>Group</label>
+                            <select name="event_group" id="addGroupInput" class="form-control form-control-lg" required>
+                                <option value="">Select group</option>
+                                <?php foreach ($event_groups as $g): ?>
+                                    <option value="<?= htmlspecialchars($g->group_name, ENT_QUOTES, 'UTF-8'); ?>">
+                                        <?= htmlspecialchars($g->group_name, ENT_QUOTES, 'UTF-8'); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                       </div>
+                       <div class="form-group col-md-6">
+                           <label>Category</label>
+                            <select name="event_category" id="addCategoryInput" class="form-control form-control-lg" required>
+                                <option value="">Select category</option>
+                                <?php foreach ($event_categories as $c): ?>
+                                    <option value="<?= htmlspecialchars($c->category_name, ENT_QUOTES, 'UTF-8'); ?>">
+                                        <?= htmlspecialchars($c->category_name, ENT_QUOTES, 'UTF-8'); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                       </div>
+                   </div>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>Officials</strong>
+                            <div class="text-muted small">Add Tournament Manager and Technical Officials.</div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="addOfficialRow">
+                            <i class="mdi mdi-plus"></i> Add another
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label>Role</label>
-                        <select name="role" class="form-control" required>
-                            <option value="Tournament Manager">Tournament Manager</option>
-                            <option value="Technical Official">Technical Official</option>
-                        </select>
+                    <div id="officialRows">
+                        <div class="form-row official-row mb-2">
+                            <div class="col-md-7 mb-2 mb-md-0">
+                                <input type="text" name="names[]" class="form-control form-control-lg" placeholder="Full name" required>
+                            </div>
+                            <div class="col-md-5 d-flex align-items-center">
+                                <select name="roles[]" class="form-control form-control-lg" required>
+                                    <option value="Tournament Manager">Tournament Manager</option>
+                                    <option value="Technical Official" selected>Technical Official</option>
+                                </select>
+                                <button type="button" class="btn btn-link text-danger ml-2 remove-official-row" title="Remove">
+                                    <i class="mdi mdi-close"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -200,7 +262,7 @@
 
     <!-- Edit Modal -->
     <div class="modal fade" id="editTechnicalModal" tabindex="-1" role="dialog" aria-labelledby="editTechnicalModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editTechnicalModalLabel">Edit Entry</h5>
@@ -211,6 +273,41 @@
                 <?= form_open('provincial/update_technical'); ?>
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editTechId">
+                    <div class="form-group">
+                        <label>Event</label>
+                        <select name="event_id" id="editEventSelect" class="form-control" required>
+                            <option value="">Select event</option>
+                            <?php foreach ($events as $ev): ?>
+                                <option value="<?= (int) $ev->event_id; ?>">
+                                    <?= htmlspecialchars($ev->event_name, ENT_QUOTES, 'UTF-8'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Group</label>
+                            <select name="event_group" id="editGroupInput" class="form-control form-control-lg" required>
+                                <option value="">Select group</option>
+                                <?php foreach ($event_groups as $g): ?>
+                                    <option value="<?= htmlspecialchars($g->group_name, ENT_QUOTES, 'UTF-8'); ?>">
+                                        <?= htmlspecialchars($g->group_name, ENT_QUOTES, 'UTF-8'); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Category</label>
+                            <select name="event_category" id="editCategoryInput" class="form-control form-control-lg" required>
+                                <option value="">Select category</option>
+                                <?php foreach ($event_categories as $c): ?>
+                                    <option value="<?= htmlspecialchars($c->category_name, ENT_QUOTES, 'UTF-8'); ?>">
+                                        <?= htmlspecialchars($c->category_name, ENT_QUOTES, 'UTF-8'); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Name</label>
                         <input type="text" name="name" id="editTechName" class="form-control" required>
@@ -234,11 +331,41 @@
 
     <script>
         $(function() {
+            $('#addOfficialRow').on('click', function() {
+                var row = `
+                    <div class="form-row official-row mb-2">
+                        <div class="col-md-7 mb-2 mb-md-0">
+                            <input type="text" name="names[]" class="form-control" placeholder="Full name" required>
+                        </div>
+        <div class="col-md-5 d-flex align-items-center">
+                            <select name="roles[]" class="form-control" required>
+                                <option value="Tournament Manager">Tournament Manager</option>
+                                <option value="Technical Official" selected>Technical Official</option>
+                            </select>
+                            <button type="button" class="btn btn-link text-danger ml-2 remove-official-row" title="Remove">
+                                <i class="mdi mdi-close"></i>
+                            </button>
+                        </div>
+                    </div>`;
+                $('#officialRows').append(row);
+            });
+
+            $(document).on('click', '.remove-official-row', function() {
+                var rows = $('#officialRows .official-row').length;
+                if (rows > 1) {
+                    $(this).closest('.official-row').remove();
+                }
+            });
+
             $('.btn-edit-tech').on('click', function() {
                 var $btn = $(this);
                 $('#editTechId').val($btn.data('id'));
                 $('#editTechName').val($btn.data('name'));
                 $('#editTechRole').val($btn.data('role'));
+                var eventId = $btn.data('event_id') || '';
+                $('#editEventSelect').val(eventId);
+                $('#editGroupInput').val($btn.data('group') || '');
+                $('#editCategoryInput').val($btn.data('category') || '');
                 $('#editTechnicalModal').modal('show');
             });
 
@@ -248,7 +375,7 @@
                     lengthChange: false,
                     order: [
                         [1, 'asc'],
-                        [0, 'asc']
+                        [2, 'asc']
                     ],
                     autoWidth: false,
                     columnDefs: [{
