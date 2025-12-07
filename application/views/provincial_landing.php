@@ -656,6 +656,18 @@
         color: var(--bronze);
     }
 
+    .medal-head-gold {
+        color: var(--gold);
+    }
+
+    .medal-head-silver {
+        color: var(--silver);
+    }
+
+    .medal-head-bronze {
+        color: var(--bronze);
+    }
+
     .winners-table tbody tr:hover td.col-gold {
         background: linear-gradient(180deg, rgba(255, 249, 196, 0.98), rgba(255, 231, 148, 0.82));
     }
@@ -1479,9 +1491,9 @@
                                         <thead>
                                             <tr>
                                                 <th>Team</th>
-                                                <th class="text-center"><span class="medal-icon">🥇</span>Gold</th>
-                                                <th class="text-center"><span class="medal-icon">🥈</span>Silver</th>
-                                                <th class="text-center"><span class="medal-icon">🥉</span>Bronze</th>
+                                                <th class="text-center medal-head-gold"><span class="medal-icon">🥇</span>Gold</th>
+                                                <th class="text-center medal-head-silver"><span class="medal-icon">🥈</span>Silver</th>
+                                                <th class="text-center medal-head-bronze"><span class="medal-icon">🥉</span>Bronze</th>
                                                 <th class="text-center">Total</th>
                                             </tr>
                                         </thead>
@@ -1561,9 +1573,9 @@
                                                 <th>Event</th>
                                                 <th class="text-center">Group</th>
                                                 <th class="text-center">Category</th>
-                                                <th class="text-center"><span class="medal-icon">🥇</span>Gold</th>
-                                                <th class="text-center"><span class="medal-icon">🥈</span>Silver</th>
-                                                <th class="text-center"><span class="medal-icon">🥉</span>Bronze</th>
+                                                <th class="text-center medal-head-gold"><span class="medal-icon">🥇</span>Gold</th>
+                                                <th class="text-center medal-head-silver"><span class="medal-icon">🥈</span>Silver</th>
+                                                <th class="text-center medal-head-bronze"><span class="medal-icon">🥉</span>Bronze</th>
                                             </tr>
                                         </thead>
                                         <tbody id="eventsRecordedBody">
@@ -1928,9 +1940,9 @@
                                             <th>Event</th>
                                             <th class="text-center">Group</th>
                                             <th class="text-center">Category</th>
-                                            <th class="text-center"><span class="medal-icon">🥇</span>Gold</th>
-                                            <th class="text-center"><span class="medal-icon">🥈</span>Silver</th>
-                                            <th class="text-center"><span class="medal-icon">🥉</span>Bronze</th>
+                                            <th class="text-center medal-head-gold"><span class="medal-icon">🥇</span>Gold</th>
+                                            <th class="text-center medal-head-silver"><span class="medal-icon">🥈</span>Silver</th>
+                                            <th class="text-center medal-head-bronze"><span class="medal-icon">🥉</span>Bronze</th>
                                         </tr>
                                     </thead>
                                     <tbody>
