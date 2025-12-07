@@ -1225,21 +1225,12 @@
                                                     ?>
                                                     <tr>
                                                         <td class="align-middle">
-                                                            <?php if ($hasData): ?>
-                                                                <a href="<?= $filterUrl; ?>" class="d-flex align-items-center" style="gap:10px; text-decoration:none; color:inherit;">
-                                                                    <?php if (!empty($logo)): ?>
-                                                                        <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
-                                                                    <?php endif; ?>
-                                                                    <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
-                                                                </a>
-                                                            <?php else: ?>
-                                                                <div class="d-flex align-items-center" style="gap:10px;">
-                                                                    <?php if (!empty($logo)): ?>
-                                                                        <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
-                                                                    <?php endif; ?>
-                                                                    <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
-                                                                </div>
-                                                            <?php endif; ?>
+                                                            <a href="<?= $filterUrl; ?>" class="d-flex align-items-center" style="gap:10px; text-decoration:none; color:inherit;">
+                                                                <?php if (!empty($logo)): ?>
+                                                                    <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
+                                                                <?php endif; ?>
+                                                                <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                            </a>
                                                         </td>
                                                         <td class="text-center font-weight-bold<?= $goldClass; ?>">
                                                             <?php if ($hasData): ?>
