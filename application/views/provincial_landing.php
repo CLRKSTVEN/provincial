@@ -656,16 +656,25 @@
         color: var(--bronze);
     }
 
-    .medal-head-gold {
-        color: var(--gold);
+    .medal-head-gold,
+    .medal-head-silver,
+    .medal-head-bronze {
+        color: #fff;
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.95), rgba(235, 170, 0, 0.92));
     }
 
     .medal-head-silver {
-        color: var(--silver);
+        background: linear-gradient(135deg, rgba(226, 232, 240, 0.98), rgba(160, 174, 192, 0.9));
     }
 
     .medal-head-bronze {
-        color: var(--bronze);
+        background: linear-gradient(135deg, rgba(255, 205, 178, 0.95), rgba(226, 137, 44, 0.92));
+    }
+
+    .medal-icon {
+        font-size: 1.05rem;
+        margin-right: 4px;
+        vertical-align: middle;
     }
 
     .winners-table tbody tr:hover td.col-gold {
@@ -1867,9 +1876,9 @@
                                 <thead>
                                     <tr>
                                         <th>Team</th>
-                                        <th class="text-center">Gold</th>
-                                        <th class="text-center">Silver</th>
-                                        <th class="text-center">Bronze</th>
+                                        <th class="text-center medal-head-gold"><span class="medal-icon">🥇</span>Gold</th>
+                                        <th class="text-center medal-head-silver"><span class="medal-icon">🥈</span>Silver</th>
+                                        <th class="text-center medal-head-bronze"><span class="medal-icon">🥉</span>Bronze</th>
                                         <th class="text-center">Total</th>
                                         <th class="text-right">Action</th>
                                     </tr>
