@@ -1203,7 +1203,6 @@
                                                 <th class="text-center">Silver</th>
                                                 <th class="text-center">Bronze</th>
                                                 <th class="text-center">Total</th>
-                                                <th class="text-right">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1226,12 +1225,21 @@
                                                     ?>
                                                     <tr>
                                                         <td class="align-middle">
-                                                            <div class="d-flex align-items-center" style="gap:10px;">
-                                                                <?php if (!empty($logo)): ?>
-                                                                    <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
-                                                                <?php endif; ?>
-                                                                <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
-                                                            </div>
+                                                            <?php if ($hasData): ?>
+                                                                <a href="<?= $filterUrl; ?>" class="d-flex align-items-center" style="gap:10px; text-decoration:none; color:inherit;">
+                                                                    <?php if (!empty($logo)): ?>
+                                                                        <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
+                                                                    <?php endif; ?>
+                                                                    <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                                </a>
+                                                            <?php else: ?>
+                                                                <div class="d-flex align-items-center" style="gap:10px;">
+                                                                    <?php if (!empty($logo)): ?>
+                                                                        <img src="<?= base_url('upload/team_logos/' . $logo); ?>" alt="<?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?> logo" class="team-logo">
+                                                                    <?php endif; ?>
+                                                                    <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                                </div>
+                                                            <?php endif; ?>
                                                         </td>
                                                         <td class="text-center font-weight-bold<?= $goldClass; ?>">
                                                             <?php if ($hasData): ?>
@@ -1253,18 +1261,11 @@
                                                                 <a href="<?= $filterUrl; ?>" class="medal-filter-link" data-medal="All"><?= $total; ?></a>
                                                                 <?php else: ?>—<?php endif; ?>
                                                         </td>
-                                                        <td class="text-right">
-                                                            <?php if ($hasData): ?>
-                                                                <a class="btn btn-sm btn-outline-primary" href="<?= $filterUrl; ?>">Details</a>
-                                                            <?php else: ?>
-                                                                <span class="text-muted">No data yet</span>
-                                                            <?php endif; ?>
-                                                        </td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
                                                 <tr class="no-results-row">
-                                                    <td colspan="6" class="text-center py-4 text-muted">No teams found.</td>
+                                                    <td colspan="5" class="text-center py-4 text-muted">No teams found.</td>
                                                 </tr>
                                             <?php endif; ?>
                                         </tbody>
