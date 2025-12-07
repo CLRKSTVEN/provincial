@@ -10,7 +10,7 @@
                     style="cursor:pointer"
                     data-toggle="modal"
                     data-target="#fbmsoVisionMissionModal">
-                    © 2025 <b>Faculty of Business and Management Student Organization.</b> All rights reserved.
+                    <b>Davao Oriental Athletic Meet. © 2025</b> All rights reserved.
                 </p>
             </div>
         </div>
@@ -100,65 +100,3 @@
         color: #101214;
     }
 </style>
-<div class="modal fade" id="fbmsoVisionMissionModal" tabindex="-1" role="dialog" aria-labelledby="fbmsoVmTitle" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <div class="brand-wrap d-flex align-items-center">
-                    <a href="<?= base_url('upload/banners/footer.jpg'); ?>" target="_blank" rel="noopener" class="mr-2">
-                        <img src="<?= base_url('upload/banners/footer.jpg'); ?>" alt="FBMSO Logo">
-                    </a>
-                    <div>
-                        <h5 id="fbmsoVmTitle" class="modal-title mb-0">Vision &amp; Mission — FBMSO</h5>
-                        <small>Faculty of Business and Management Student Organization</small>
-                    </div>
-                </div>
-                <button type="button" class="close ml-auto" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-
-            <div class="modal-body pt-3">
-                <div class="section-title mb-2">VISION</div>
-                <p class="lead-vision mb-3">
-                    To be a catalyst for innovation and entrepreneurial spirit within the business and hospitality fields,
-                    empowering students to create and lead transformative ventures.
-                </p>
-
-                <div class="section-title mb-2 mt-3">MISSION</div>
-                <div class="mission-wrap">
-                    <ol class="pl-3 mb-0">
-                        <li>Empower BSBA-FM and BSHM students to become successful and ethical leaders in the business and hospitality industries.</li>
-                        <li>Foster a supportive community that enhances students’ academic, professional, and personal growth.</li>
-                        <li>Bridge theory and practice by providing real-world experiences and strong industry connections.</li>
-                        <li>Advocate for student interests while promoting academic excellence and professional development.</li>
-                        <li>Cultivate innovative thinkers and problem-solvers through engaging programs and collaborative initiatives.</li>
-                        <li>Develop globally minded professionals equipped to thrive in evolving business and hospitality landscapes.</li>
-                        <li>Enrich the university experience through events, workshops, and networking opportunities.</li>
-                        <li>Promote ethical and sustainable practices via student-led initiatives and community engagement.</li>
-                        <li>Prepare students for successful careers by providing essential skills, knowledge, and resources.</li>
-                        <li>Build a strong alumni and industry network to support the ongoing success of graduates.</li>
-                    </ol>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-close-fbm" data-dismiss="modal">Close</button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<script>
-    (function() {
-        function ready(fn) {
-            document.readyState !== 'loading' ? fn() : document.addEventListener('DOMContentLoaded', fn);
-        }
-        ready(function() {
-            var m = document.getElementById('fbmsoVisionMissionModal');
-            if (m && m.parentElement.tagName.toLowerCase() !== 'body') document.body.appendChild(m);
-        });
-    })();
-</script>

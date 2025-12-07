@@ -1178,7 +1178,15 @@
                             $loginUrl   = $isLoggedIn ? site_url('provincial/admin') : site_url('login');
                             $loginText  = $isLoggedIn ? 'Admin Dashboard' : 'Login';
                             ?>
-                            <img src="<?= base_url('upload/banners/Banner.png'); ?>" alt="<?= htmlspecialchars($meet_title . ' banner', ENT_QUOTES, 'UTF-8'); ?>" class="banner-image">
+                            <?php if ($activeMunicipalityHeader === ''): ?>
+                                <img src="<?= base_url('upload/banners/Banner.png'); ?>" alt="<?= htmlspecialchars($meet_title . ' banner', ENT_QUOTES, 'UTF-8'); ?>" class="banner-image">
+                            <?php else: ?>
+                                <div class="landing-title">
+                                    <h4>Official Result Board</h4>
+                                    <h2 style="margin-bottom:4px;"><?= htmlspecialchars($activeMunicipalityHeader, ENT_QUOTES, 'UTF-8'); ?></h2>
+                                    <small>Viewing team details and standings. Use the tabs below to switch groups.</small>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
                         <!-- Group/login controls -->
@@ -1254,16 +1262,33 @@
                                     'category' => $w->category ?? '-',
                                     'gold' => 0,
                                     'silver' => 0,
-                                    'bronze' => 0
+                                    'bronze' => 0,
+                                    'teams' => array(),
+                                    'gold_teams' => array(),
+                                    'silver_teams' => array(),
+                                    'bronze_teams' => array()
                                 );
+                            }
+                            $teamName = trim((string)($w->municipality ?? ''));
+                            if ($teamName !== '' && !in_array($teamName, $eventSummaries[$key]['teams'], true)) {
+                                $eventSummaries[$key]['teams'][] = $teamName;
                             }
                             $medal = strtolower($w->medal ?? '');
                             if ($medal === 'gold') {
                                 $eventSummaries[$key]['gold'] += 1;
+                                if ($teamName !== '' && !in_array($teamName, $eventSummaries[$key]['gold_teams'], true)) {
+                                    $eventSummaries[$key]['gold_teams'][] = $teamName;
+                                }
                             } elseif ($medal === 'silver') {
                                 $eventSummaries[$key]['silver'] += 1;
+                                if ($teamName !== '' && !in_array($teamName, $eventSummaries[$key]['silver_teams'], true)) {
+                                    $eventSummaries[$key]['silver_teams'][] = $teamName;
+                                }
                             } elseif ($medal === 'bronze') {
                                 $eventSummaries[$key]['bronze'] += 1;
+                                if ($teamName !== '' && !in_array($teamName, $eventSummaries[$key]['bronze_teams'], true)) {
+                                    $eventSummaries[$key]['bronze_teams'][] = $teamName;
+                                }
                             }
                         }
                         $eventSummaries = array_values($eventSummaries);
@@ -1286,7 +1311,8 @@
                                         'category' => $ev->category_name ?? '-',
                                         'gold' => 0,
                                         'silver' => 0,
-                                        'bronze' => 0
+                                        'bronze' => 0,
+                                        'teams' => array()
                                     );
                                 }
                                 $eventSummaries[$key]['gold'] += $g;
@@ -1309,7 +1335,7 @@
                                         role="button" tabindex="0">
                                         <div class="summary-label">Participating Teams</div>
                                         <div class="summary-value" id="stat-municipalities"><?= $municipalities; ?></div>
-                                        <div class="summary-sub">Total registered teams</div>
+                                        <!-- <div class="summary-sub">Total registered teams</div> -->
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3 mb-md-0">
@@ -1317,7 +1343,7 @@
                                         aria-label="View events with posted results">
                                         <div class="summary-label">Events Recorded</div>
                                         <div class="summary-value" id="stat-events"><?= $events; ?></div>
-                                        <div class="summary-sub">completed with reported winners</div>
+                                        <!-- <div class="summary-sub">completed with reported winners</div> -->
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -1333,10 +1359,10 @@
                                                 · <span class="medal-filter" data-medal="Bronze" style="cursor:pointer;"><?= $bronzeTotal; ?>B</span>)
                                             </span>
                                         </div>
-                                        <div class="summary-sub">
-                                            Last update:
-                                            <span id="stat-last-update"><?= $lastUpdate; ?></span>
-                                        </div>
+                                        <!--<div class="summary-sub">-->
+                                        <!--    Last update:-->
+                                        <!--    <span id="stat-last-update"><?= $lastUpdate; ?></span>-->
+                                        <!--</div>-->
                                     </div>
                                 </div>
                             </div>
@@ -1372,8 +1398,10 @@
                             <div class="winners-table-wrapper mt-4" id="liveTallyWrapper">
                                 <div class="winners-toolbar">
                                     <div class="winners-toolbar-left">
-                                        <h5 class="winners-heading">Official Result Board - Live Tally</h5>
-                                        <p class="winners-subtext mb-0">Tap a medal count or click the logo to view team.</p>
+                                        <h5 class="winners-heading">Official Results Board - Live Tally</h5>
+                                        <p class="winners-subtext mb-0">Last update:
+                                            <span id="stat-last-update"><?= $lastUpdate; ?></span>
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -1466,7 +1494,6 @@
                                                 <th class="text-center">Gold</th>
                                                 <th class="text-center">Silver</th>
                                                 <th class="text-center">Bronze</th>
-                                                <th class="text-center">Total</th>
                                             </tr>
                                         </thead>
                                         <tbody id="eventsRecordedBody">
@@ -1481,20 +1508,22 @@
                                                     $silverCls = $silver > 0 ? ' col-silver' : '';
                                                     $bronzeCls = $bronze > 0 ? ' col-bronze' : '';
                                                     $rowCls = $total > 0 ? ' class="has-medal-row"' : '';
+                                                    $goldTeams = !empty($ev['gold_teams']) ? implode(', ', $ev['gold_teams']) : '—';
+                                                    $silverTeams = !empty($ev['silver_teams']) ? implode(', ', $ev['silver_teams']) : '—';
+                                                    $bronzeTeams = !empty($ev['bronze_teams']) ? implode(', ', $ev['bronze_teams']) : '—';
                                                     ?>
                                                     <tr<?= $rowCls; ?>>
                                                         <td><?= htmlspecialchars($ev['event_name'], ENT_QUOTES, 'UTF-8'); ?></td>
                                                         <td class="text-center"><?= htmlspecialchars($ev['event_group'], ENT_QUOTES, 'UTF-8'); ?></td>
                                                         <td class="text-center"><?= htmlspecialchars($ev['category'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                                        <td class="text-center font-weight-bold<?= $goldCls; ?>"><?= $gold; ?></td>
-                                                        <td class="text-center font-weight-bold<?= $silverCls; ?>"><?= $silver; ?></td>
-                                                        <td class="text-center font-weight-bold<?= $bronzeCls; ?>"><?= $bronze; ?></td>
-                                                        <td class="text-center font-weight-bold"><?= $total; ?></td>
+                                                        <td class="text-center font-weight-bold<?= $goldCls; ?>"><?= htmlspecialchars($goldTeams, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td class="text-center font-weight-bold<?= $silverCls; ?>"><?= htmlspecialchars($silverTeams, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td class="text-center font-weight-bold<?= $bronzeCls; ?>"><?= htmlspecialchars($bronzeTeams, ENT_QUOTES, 'UTF-8'); ?></td>
                                                         </tr>
                                                     <?php endforeach; ?>
                                                 <?php else: ?>
                                                     <tr class="no-results-row">
-                                                        <td colspan="7" class="text-center py-4 text-muted">
+                                                        <td colspan="6" class="text-center py-4 text-muted">
                                                             No events with posted results yet.
                                                         </td>
                                                     </tr>
@@ -1654,9 +1683,9 @@
                         <?php endif; ?>
 
                         <div class="footer-note">
-                            <span>
+                            <!-- <span>
                                 For questions or clarification on these results, please coordinate with the Meet Coordinator.
-                            </span>
+                            </span> -->
                         </div>
 
                     </div>
@@ -1832,7 +1861,6 @@
                                             <th class="text-center">Gold</th>
                                             <th class="text-center">Silver</th>
                                             <th class="text-center">Bronze</th>
-                                            <th class="text-center">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1846,15 +1874,17 @@
                                             $silverCls = $silver > 0 ? ' col-silver' : '';
                                             $bronzeCls = $bronze > 0 ? ' col-bronze' : '';
                                             $rowCls = $total > 0 ? ' class="has-medal-row"' : '';
+                                            $goldTeams = !empty($ev['gold_teams']) ? implode(', ', $ev['gold_teams']) : '—';
+                                            $silverTeams = !empty($ev['silver_teams']) ? implode(', ', $ev['silver_teams']) : '—';
+                                            $bronzeTeams = !empty($ev['bronze_teams']) ? implode(', ', $ev['bronze_teams']) : '—';
                                             ?>
                                             <tr<?= $rowCls; ?>>
                                                 <td><?= htmlspecialchars($ev['event_name'], ENT_QUOTES, 'UTF-8'); ?></td>
                                                 <td class="text-center"><?= htmlspecialchars($ev['event_group'], ENT_QUOTES, 'UTF-8'); ?></td>
                                                 <td class="text-center"><?= htmlspecialchars($ev['category'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                                <td class="text-center font-weight-bold<?= $goldCls; ?>"><?= $gold; ?></td>
-                                                <td class="text-center font-weight-bold<?= $silverCls; ?>"><?= $silver; ?></td>
-                                                <td class="text-center font-weight-bold<?= $bronzeCls; ?>"><?= $bronze; ?></td>
-                                                <td class="text-center font-weight-bold"><?= $total; ?></td>
+                                                <td class="text-center font-weight-bold<?= $goldCls; ?>"><?= htmlspecialchars($goldTeams, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                <td class="text-center font-weight-bold<?= $silverCls; ?>"><?= htmlspecialchars($silverTeams, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                <td class="text-center font-weight-bold<?= $bronzeCls; ?>"><?= htmlspecialchars($bronzeTeams, ENT_QUOTES, 'UTF-8'); ?></td>
                                                 </tr>
                                             <?php endforeach; ?>
                                     </tbody>
@@ -2120,7 +2150,7 @@
 
             function renderEventSummaries(rows) {
                 if (!rows || rows.length === 0) {
-                    return '<tr class="no-results-row"><td colspan="7" class="text-center py-4 text-muted">No events with posted results yet.</td></tr>';
+                    return '<tr class="no-results-row"><td colspan="6" class="text-center py-4 text-muted">No events with posted results yet.</td></tr>';
                 }
                 var summary = {};
                 rows.forEach(function(r) {
@@ -2134,13 +2164,34 @@
                             category: r.category || '-',
                             gold: 0,
                             silver: 0,
-                            bronze: 0
+                            bronze: 0,
+                            teams: [],
+                            goldTeams: [],
+                            silverTeams: [],
+                            bronzeTeams: []
                         };
                     }
+                    var teamName = (r.municipality || '').trim();
+                    if (teamName && summary[key].teams.indexOf(teamName) === -1) {
+                        summary[key].teams.push(teamName);
+                    }
                     var medal = (r.medal || '').toLowerCase();
-                    if (medal === 'gold') summary[key].gold++;
-                    else if (medal === 'silver') summary[key].silver++;
-                    else if (medal === 'bronze') summary[key].bronze++;
+                    if (medal === 'gold') {
+                        summary[key].gold++;
+                        if (teamName && summary[key].goldTeams.indexOf(teamName) === -1) {
+                            summary[key].goldTeams.push(teamName);
+                        }
+                    } else if (medal === 'silver') {
+                        summary[key].silver++;
+                        if (teamName && summary[key].silverTeams.indexOf(teamName) === -1) {
+                            summary[key].silverTeams.push(teamName);
+                        }
+                    } else if (medal === 'bronze') {
+                        summary[key].bronze++;
+                        if (teamName && summary[key].bronzeTeams.indexOf(teamName) === -1) {
+                            summary[key].bronzeTeams.push(teamName);
+                        }
+                    }
                 });
                 var list = Object.values(summary).sort(function(a, b) {
                     return (a.event_name || '').localeCompare(b.event_name || '');
@@ -2152,17 +2203,19 @@
                     var goldCls = ev.gold > 0 ? ' col-gold' : '';
                     var silverCls = ev.silver > 0 ? ' col-silver' : '';
                     var bronzeCls = ev.bronze > 0 ? ' col-bronze' : '';
+                    var goldTeams = (ev.goldTeams && ev.goldTeams.length) ? ev.goldTeams.join(', ') : '—';
+                    var silverTeams = (ev.silverTeams && ev.silverTeams.length) ? ev.silverTeams.join(', ') : '—';
+                    var bronzeTeams = (ev.bronzeTeams && ev.bronzeTeams.length) ? ev.bronzeTeams.join(', ') : '—';
                     html += '<tr' + rowCls + '>' +
                         '<td>' + $('<div>').text(ev.event_name).html() + '</td>' +
                         '<td class="text-center">' + $('<div>').text(ev.event_group).html() + '</td>' +
                         '<td class="text-center">' + $('<div>').text(ev.category).html() + '</td>' +
-                        '<td class="text-center font-weight-bold' + goldCls + '">' + ev.gold + '</td>' +
-                        '<td class="text-center font-weight-bold' + silverCls + '">' + ev.silver + '</td>' +
-                        '<td class="text-center font-weight-bold' + bronzeCls + '">' + ev.bronze + '</td>' +
-                        '<td class="text-center font-weight-bold">' + total + '</td>' +
+                        '<td class="text-center font-weight-bold' + goldCls + '">' + $('<div>').text(goldTeams).html() + '</td>' +
+                        '<td class="text-center font-weight-bold' + silverCls + '">' + $('<div>').text(silverTeams).html() + '</td>' +
+                        '<td class="text-center font-weight-bold' + bronzeCls + '">' + $('<div>').text(bronzeTeams).html() + '</td>' +
                         '</tr>';
                 });
-                return html || '<tr class="no-results-row"><td colspan="7" class="text-center py-4 text-muted">No events with posted results yet.</td></tr>';
+                return html || '<tr class="no-results-row"><td colspan="6" class="text-center py-4 text-muted">No events with posted results yet.</td></tr>';
             }
 
             function refreshResults() {
