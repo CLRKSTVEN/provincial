@@ -5,9 +5,9 @@
 
 <style>
     :root {
-        --bg-gradient: radial-gradient(circle at 12% 18%, rgba(96, 165, 250, 0.25), transparent 42%),
-            radial-gradient(circle at 82% 78%, rgba(249, 115, 22, 0.18), transparent 40%),
-            linear-gradient(135deg, #e0f2fe 0%, #fdf2f8 55%, #fff7ed 100%);
+        --bg-gradient:
+            url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='200'%20height='200'%20viewBox='0%200%20200%20200'%3E%3Cpath%20d='M-40%2040%20q50%20-30%20100%200%20t100%200%20t100%200'%20fill='none'%20stroke='rgba(255,255,255,0.2)'%20stroke-width='2'/%3E%3Cpath%20d='M-40%2080%20q50%20-30%20100%200%20t100%200%20t100%200'%20fill='none'%20stroke='rgba(255,255,255,0.18)'%20stroke-width='2'/%3E%3Cpath%20d='M-40%20120%20q50%20-30%20100%200%20t100%200%20t100%200'%20fill='none'%20stroke='rgba(255,255,255,0.16)'%20stroke-width='2'/%3E%3Cpath%20d='M-40%20160%20q50%20-30%20100%200%20t100%200%20t100%200'%20fill='none'%20stroke='rgba(255,255,255,0.14)'%20stroke-width='2'/%3E%3C/svg%3E"),
+            linear-gradient(135deg, #f7f77a 0%, #b9f16b 25%, #4dd7a1 60%, #0fb7b4 100%);
         --card-bg: #ffffff;
         --card-border: #e2e8f0;
         --accent: #2563eb;
@@ -51,7 +51,7 @@
     body::before {
         width: 520px;
         height: 520px;
-        background: radial-gradient(circle, #bfdbfe 0, transparent 70%);
+        background: radial-gradient(circle, rgba(74, 222, 128, 0.4) 0, transparent 70%);
         top: -180px;
         right: -200px;
     }
@@ -59,7 +59,7 @@
     body::after {
         width: 420px;
         height: 420px;
-        background: radial-gradient(circle, #fed7aa 0, transparent 70%);
+        background: radial-gradient(circle, rgba(253, 230, 138, 0.55) 0, transparent 70%);
         bottom: -150px;
         left: -200px;
         animation-delay: -11s;
@@ -241,12 +241,12 @@
 
     .banner-image {
         width: 100%;
-        height: 230px;
+        height: 260px;
         min-height: 230px;
-        max-height: 320px;
+        max-height: 360px;
         border-radius: 18px;
         box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
-        background-size: contain;
+        background-size: cover;
         background-repeat: no-repeat;
         background-position: center;
         background-color: #0f172a;
@@ -1076,7 +1076,7 @@
         }
 
         .banner-image {
-            height: 200px;
+            height: 220px;
             min-height: 200px;
             max-height: 260px;
         }
@@ -1490,15 +1490,15 @@
                                                         <td class="text-center font-weight-bold<?= $silverCls; ?>"><?= $silver; ?></td>
                                                         <td class="text-center font-weight-bold<?= $bronzeCls; ?>"><?= $bronze; ?></td>
                                                         <td class="text-center font-weight-bold"><?= $total; ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <tr class="no-results-row">
+                                                        <td colspan="7" class="text-center py-4 text-muted">
+                                                            No events with posted results yet.
+                                                        </td>
                                                     </tr>
-                                                <?php endforeach; ?>
-                                            <?php else: ?>
-                                                <tr class="no-results-row">
-                                                    <td colspan="7" class="text-center py-4 text-muted">
-                                                        No events with posted results yet.
-                                                    </td>
-                                                </tr>
-                                            <?php endif; ?>
+                                                <?php endif; ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -1855,8 +1855,8 @@
                                                 <td class="text-center font-weight-bold<?= $silverCls; ?>"><?= $silver; ?></td>
                                                 <td class="text-center font-weight-bold<?= $bronzeCls; ?>"><?= $bronze; ?></td>
                                                 <td class="text-center font-weight-bold"><?= $total; ?></td>
-                                            </tr>
-                                        <?php endforeach; ?>
+                                                </tr>
+                                            <?php endforeach; ?>
                                     </tbody>
                                 </table>
                             </div>
