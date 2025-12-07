@@ -34,6 +34,7 @@ class Provincial extends CI_Controller
             'active_municipality' => $municipality,
             'winners'      => $winners,
             'overview'     => $overview,
+            'events_list'  => $this->Events_model->get_events_with_meta_and_counts(),
             'municipality_tally' => $tally,
             'municipalities_all' => $this->Address_model->get_municipalities(),
             'meet'         => $this->MeetSettings_model->get_settings(), // NEW

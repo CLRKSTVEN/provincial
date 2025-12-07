@@ -241,13 +241,15 @@
 
     .banner-image {
         width: 100%;
-        height: 190px;
-        min-height: 190px;
+        height: 230px;
+        min-height: 230px;
+        max-height: 320px;
         border-radius: 18px;
         box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
-        background-size: cover;
+        background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
+        background-color: #0f172a;
     }
 
     .banner-overlay {
@@ -594,6 +596,14 @@
 
     .winners-table tbody tr:hover td.col-bronze {
         background: linear-gradient(180deg, rgba(255, 228, 203, 0.96), rgba(252, 189, 126, 0.8));
+    }
+
+    .has-medal-row {
+        background: linear-gradient(90deg, rgba(240, 249, 255, 0.55), rgba(238, 242, 255, 0.65));
+    }
+
+    .has-medal-row:hover {
+        background: linear-gradient(90deg, rgba(224, 242, 255, 0.7), rgba(224, 231, 255, 0.78));
     }
 
     .clear-filter-btn {
@@ -1066,8 +1076,9 @@
         }
 
         .banner-image {
-            height: 160px;
-            min-height: 160px;
+            height: 200px;
+            min-height: 200px;
+            max-height: 260px;
         }
 
         /* Fit live tally without scrolling */
@@ -1167,7 +1178,7 @@
                             $loginUrl   = $isLoggedIn ? site_url('provincial/admin') : site_url('login');
                             $loginText  = $isLoggedIn ? 'Admin Dashboard' : 'Login';
                             ?>
-                            <img src="<?= base_url('upload/banners/doit-letterhead.png'); ?>" alt="<?= htmlspecialchars($meet_title . ' banner', ENT_QUOTES, 'UTF-8'); ?>" class="banner-image">
+                            <img src="<?= base_url('upload/banners/Banner.png'); ?>" alt="<?= htmlspecialchars($meet_title . ' banner', ENT_QUOTES, 'UTF-8'); ?>" class="banner-image">
                         </div>
 
                         <!-- Group/login controls -->
@@ -1219,6 +1230,74 @@
                             if ($key === '') continue;
                             $tallyMap[$key] = $row;
                         }
+
+                        // Prepare medal-sorted winners and event summaries (used by panels)
+                        $winnersSorted = $winners ?? array();
+                        if (!empty($winnersSorted) && is_array($winnersSorted)) {
+                            usort($winnersSorted, function ($a, $b) {
+                                $weight = ['Gold' => 3, 'Silver' => 2, 'Bronze' => 1];
+                                $medalDiff = ($weight[$b->medal] ?? 0) - ($weight[$a->medal] ?? 0);
+                                if ($medalDiff !== 0) return $medalDiff;
+                                $eventDiff = strcasecmp($a->event_name ?? '', $b->event_name ?? '');
+                                if ($eventDiff !== 0) return $eventDiff;
+                                return strcasecmp($a->municipality ?? '', $b->municipality ?? '');
+                            });
+                        }
+                        $eventSummaries = array();
+                        foreach ($winnersSorted as $w) {
+                            $eventId = $w->event_id ?? null;
+                            $key = $eventId !== null ? 'id-' . $eventId : 'name-' . md5(($w->event_name ?? '') . ($w->event_group ?? '') . ($w->category ?? ''));
+                            if (!isset($eventSummaries[$key])) {
+                                $eventSummaries[$key] = array(
+                                    'event_name' => $w->event_name ?? 'Unknown Event',
+                                    'event_group' => $w->event_group ?? '-',
+                                    'category' => $w->category ?? '-',
+                                    'gold' => 0,
+                                    'silver' => 0,
+                                    'bronze' => 0
+                                );
+                            }
+                            $medal = strtolower($w->medal ?? '');
+                            if ($medal === 'gold') {
+                                $eventSummaries[$key]['gold'] += 1;
+                            } elseif ($medal === 'silver') {
+                                $eventSummaries[$key]['silver'] += 1;
+                            } elseif ($medal === 'bronze') {
+                                $eventSummaries[$key]['bronze'] += 1;
+                            }
+                        }
+                        $eventSummaries = array_values($eventSummaries);
+                        usort($eventSummaries, function ($a, $b) {
+                            return strcasecmp($a['event_name'], $b['event_name']);
+                        });
+                        // Fallback: if no winners list was provided, build summaries from events_list counts
+                        if (empty($eventSummaries) && !empty($events_list) && is_array($events_list)) {
+                            foreach ($events_list as $ev) {
+                                $g = isset($ev->gold_count) ? (int) $ev->gold_count : 0;
+                                $s = isset($ev->silver_count) ? (int) $ev->silver_count : 0;
+                                $b = isset($ev->bronze_count) ? (int) $ev->bronze_count : 0;
+                                $total = $g + $s + $b;
+                                if ($total <= 0) continue;
+                                $key = isset($ev->event_id) ? 'id-' . $ev->event_id : 'name-' . md5(($ev->event_name ?? '') . ($ev->group_name ?? '') . ($ev->category_name ?? ''));
+                                if (!isset($eventSummaries[$key])) {
+                                    $eventSummaries[$key] = array(
+                                        'event_name' => $ev->event_name ?? 'Unknown Event',
+                                        'event_group' => $ev->group_name ?? '-',
+                                        'category' => $ev->category_name ?? '-',
+                                        'gold' => 0,
+                                        'silver' => 0,
+                                        'bronze' => 0
+                                    );
+                                }
+                                $eventSummaries[$key]['gold'] += $g;
+                                $eventSummaries[$key]['silver'] += $s;
+                                $eventSummaries[$key]['bronze'] += $b;
+                            }
+                            $eventSummaries = array_values($eventSummaries);
+                            usort($eventSummaries, function ($a, $b) {
+                                return strcasecmp($a['event_name'], $b['event_name']);
+                            });
+                        }
                         ?>
 
                         <?php if (empty($activeMunicipality)): ?>
@@ -1234,7 +1313,8 @@
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3 mb-md-0">
-                                    <div class="summary-card">
+                                    <div class="summary-card clickable" id="eventsRecordedCard" role="button" tabindex="0"
+                                        aria-label="View events with posted results">
                                         <div class="summary-label">Events Recorded</div>
                                         <div class="summary-value" id="stat-events"><?= $events; ?></div>
                                         <div class="summary-sub">completed with reported winners</div>
@@ -1292,8 +1372,8 @@
                             <div class="winners-table-wrapper mt-4" id="liveTallyWrapper">
                                 <div class="winners-toolbar">
                                     <div class="winners-toolbar-left">
-                                        <h5 class="winners-heading">Live Tally</h5>
-                                        <p class="winners-subtext mb-0">Tap a medal count or view a team.</p>
+                                        <h5 class="winners-heading">Official Result Board - Live Tally</h5>
+                                        <p class="winners-subtext mb-0">Tap a medal count or click the logo to view team.</p>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -1366,20 +1446,65 @@
                                 </div>
                             </div>
 
-                            <?php
-                            // Medal breakdown data (sorted by medal then event/team)
-                            $winnersSorted = $winners ?? array();
-                            if (!empty($winnersSorted) && is_array($winnersSorted)) {
-                                usort($winnersSorted, function ($a, $b) {
-                                    $weight = ['Gold' => 3, 'Silver' => 2, 'Bronze' => 1];
-                                    $medalDiff = ($weight[$b->medal] ?? 0) - ($weight[$a->medal] ?? 0);
-                                    if ($medalDiff !== 0) return $medalDiff;
-                                    $eventDiff = strcasecmp($a->event_name ?? '', $b->event_name ?? '');
-                                    if ($eventDiff !== 0) return $eventDiff;
-                                    return strcasecmp($a->municipality ?? '', $b->municipality ?? '');
-                                });
-                            }
-                            ?>
+                            <div class="winners-table-wrapper mt-3" id="eventsRecordedPanel" style="display:none;">
+                                <div class="winners-toolbar">
+                                    <div class="winners-toolbar-left">
+                                        <h5 class="winners-heading mb-0">Events with Results</h5>
+                                        <p class="winners-subtext mb-0">All events that already have encoded medals.</p>
+                                    </div>
+                                    <div class="winners-actions">
+                                        <button class="btn btn-sm btn-light" id="hideEventsPanel">Hide</button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover mb-0 winners-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Event</th>
+                                                <th class="text-center">Group</th>
+                                                <th class="text-center">Category</th>
+                                                <th class="text-center">Gold</th>
+                                                <th class="text-center">Silver</th>
+                                                <th class="text-center">Bronze</th>
+                                                <th class="text-center">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="eventsRecordedBody">
+                                            <?php if (!empty($eventSummaries)): ?>
+                                                <?php foreach ($eventSummaries as $ev): ?>
+                                                    <?php
+                                                    $gold = (int) $ev['gold'];
+                                                    $silver = (int) $ev['silver'];
+                                                    $bronze = (int) $ev['bronze'];
+                                                    $total = $gold + $silver + $bronze;
+                                                    $goldCls = $gold > 0 ? ' col-gold' : '';
+                                                    $silverCls = $silver > 0 ? ' col-silver' : '';
+                                                    $bronzeCls = $bronze > 0 ? ' col-bronze' : '';
+                                                    $rowCls = $total > 0 ? ' class="has-medal-row"' : '';
+                                                    ?>
+                                                    <tr<?= $rowCls; ?>>
+                                                        <td><?= htmlspecialchars($ev['event_name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td class="text-center"><?= htmlspecialchars($ev['event_group'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td class="text-center"><?= htmlspecialchars($ev['category'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td class="text-center font-weight-bold<?= $goldCls; ?>"><?= $gold; ?></td>
+                                                        <td class="text-center font-weight-bold<?= $silverCls; ?>"><?= $silver; ?></td>
+                                                        <td class="text-center font-weight-bold<?= $bronzeCls; ?>"><?= $bronze; ?></td>
+                                                        <td class="text-center font-weight-bold"><?= $total; ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <tr class="no-results-row">
+                                                    <td colspan="7" class="text-center py-4 text-muted">
+                                                        No events with posted results yet.
+                                                    </td>
+                                                </tr>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <?php ?>
                             <div class="winners-table-wrapper mt-3" id="medalBreakdownPanel" style="display:none;">
                                 <div class="winners-toolbar">
                                     <div class="winners-toolbar-left">
@@ -1541,18 +1666,6 @@
     </section>
 
     <?php
-    // Prepare medal-sorted winners for the modal (current filter scope: group + optional municipality)
-    $winnersSorted = $winners ?? array();
-    if (!empty($winnersSorted) && is_array($winnersSorted)) {
-        usort($winnersSorted, function ($a, $b) {
-            $weight = ['Gold' => 3, 'Silver' => 2, 'Bronze' => 1];
-            $medalDiff = ($weight[$b->medal] ?? 0) - ($weight[$a->medal] ?? 0);
-            if ($medalDiff !== 0) return $medalDiff;
-            $eventDiff = strcasecmp($a->event_name ?? '', $b->event_name ?? '');
-            if ($eventDiff !== 0) return $eventDiff;
-            return strcasecmp($a->municipality ?? '', $b->municipality ?? '');
-        });
-    }
     ?>
     <!-- Participating Teams Modal -->
     <?php
@@ -1696,6 +1809,67 @@
                 </div>
             </div>
         </div>
+
+        <!-- Events Recorded Modal -->
+        <div class="modal fade" id="eventsRecordedModal" tabindex="-1" role="dialog" aria-labelledby="eventsRecordedModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="eventsRecordedModalLabel">Events with Posted Results</h5>
+                        <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true" style="font-size:1.4rem;">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <?php if (!empty($eventSummaries)): ?>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Event</th>
+                                            <th class="text-center">Group</th>
+                                            <th class="text-center">Category</th>
+                                            <th class="text-center">Gold</th>
+                                            <th class="text-center">Silver</th>
+                                            <th class="text-center">Bronze</th>
+                                            <th class="text-center">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($eventSummaries as $ev): ?>
+                                            <?php
+                                            $gold = (int) $ev['gold'];
+                                            $silver = (int) $ev['silver'];
+                                            $bronze = (int) $ev['bronze'];
+                                            $total = $gold + $silver + $bronze;
+                                            $goldCls = $gold > 0 ? ' col-gold' : '';
+                                            $silverCls = $silver > 0 ? ' col-silver' : '';
+                                            $bronzeCls = $bronze > 0 ? ' col-bronze' : '';
+                                            $rowCls = $total > 0 ? ' class="has-medal-row"' : '';
+                                            ?>
+                                            <tr<?= $rowCls; ?>>
+                                                <td><?= htmlspecialchars($ev['event_name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                                <td class="text-center"><?= htmlspecialchars($ev['event_group'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                                <td class="text-center"><?= htmlspecialchars($ev['category'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                                <td class="text-center font-weight-bold<?= $goldCls; ?>"><?= $gold; ?></td>
+                                                <td class="text-center font-weight-bold<?= $silverCls; ?>"><?= $silver; ?></td>
+                                                <td class="text-center font-weight-bold<?= $bronzeCls; ?>"><?= $bronze; ?></td>
+                                                <td class="text-center font-weight-bold"><?= $total; ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-3">No events with results yet.</div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- JS -->
@@ -1738,14 +1912,39 @@
                 var modalEl = document.getElementById('municipalityModal');
                 if (!modalEl) return;
 
+                if ($.fn && $.fn.modal) {
+                    $(modalEl).modal('show');
+                    return;
+                }
+
                 if (bootstrap && bootstrap.Modal) {
-                    var instance = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    var instance = bootstrap.Modal.getOrCreateInstance ?
+                        bootstrap.Modal.getOrCreateInstance(modalEl) :
+                        new bootstrap.Modal(modalEl);
                     instance.show();
                     return;
                 }
 
+                modalEl.classList.add('show');
+                modalEl.style.display = 'block';
+                modalEl.removeAttribute('aria-hidden');
+                modalEl.setAttribute('aria-modal', 'true');
+            }
+
+            function openEventsRecordedModal() {
+                var modalEl = document.getElementById('eventsRecordedModal');
+                if (!modalEl) return;
+
                 if ($.fn && $.fn.modal) {
                     $(modalEl).modal('show');
+                    return;
+                }
+
+                if (bootstrap && bootstrap.Modal) {
+                    var instance = bootstrap.Modal.getOrCreateInstance ?
+                        bootstrap.Modal.getOrCreateInstance(modalEl) :
+                        new bootstrap.Modal(modalEl);
+                    instance.show();
                     return;
                 }
 
@@ -1761,6 +1960,25 @@
                 if (!$panel.length) return;
                 if (show) {
                     if ($tally.length) $tally.hide();
+                    $panel.stop(true, true).slideDown(160);
+                    var top = $panel.offset().top - 80;
+                    $('html, body').animate({
+                        scrollTop: top
+                    }, 200);
+                } else {
+                    $panel.stop(true, true).slideUp(140, function() {
+                        if ($tally.length) $tally.show();
+                    });
+                }
+            }
+
+            function toggleEventsPanel(show) {
+                var $panel = $('#eventsRecordedPanel');
+                var $tally = $('#liveTallyWrapper');
+                if (!$panel.length) return;
+                if (show) {
+                    if ($tally.length) $tally.hide();
+                    $('#medalBreakdownPanel').hide();
                     $panel.stop(true, true).slideDown(160);
                     var top = $panel.offset().top - 80;
                     $('html, body').animate({
@@ -1900,6 +2118,53 @@
                 return rows;
             }
 
+            function renderEventSummaries(rows) {
+                if (!rows || rows.length === 0) {
+                    return '<tr class="no-results-row"><td colspan="7" class="text-center py-4 text-muted">No events with posted results yet.</td></tr>';
+                }
+                var summary = {};
+                rows.forEach(function(r) {
+                    var key = (r.event_id !== undefined && r.event_id !== null) ?
+                        'id-' + r.event_id :
+                        'name-' + ((r.event_name || '') + '|' + (r.event_group || '') + '|' + (r.category || '')).toLowerCase();
+                    if (!summary[key]) {
+                        summary[key] = {
+                            event_name: r.event_name || 'Unknown Event',
+                            event_group: r.event_group || '-',
+                            category: r.category || '-',
+                            gold: 0,
+                            silver: 0,
+                            bronze: 0
+                        };
+                    }
+                    var medal = (r.medal || '').toLowerCase();
+                    if (medal === 'gold') summary[key].gold++;
+                    else if (medal === 'silver') summary[key].silver++;
+                    else if (medal === 'bronze') summary[key].bronze++;
+                });
+                var list = Object.values(summary).sort(function(a, b) {
+                    return (a.event_name || '').localeCompare(b.event_name || '');
+                });
+                var html = '';
+                list.forEach(function(ev) {
+                    var total = ev.gold + ev.silver + ev.bronze;
+                    var rowCls = total > 0 ? ' class="has-medal-row"' : '';
+                    var goldCls = ev.gold > 0 ? ' col-gold' : '';
+                    var silverCls = ev.silver > 0 ? ' col-silver' : '';
+                    var bronzeCls = ev.bronze > 0 ? ' col-bronze' : '';
+                    html += '<tr' + rowCls + '>' +
+                        '<td>' + $('<div>').text(ev.event_name).html() + '</td>' +
+                        '<td class="text-center">' + $('<div>').text(ev.event_group).html() + '</td>' +
+                        '<td class="text-center">' + $('<div>').text(ev.category).html() + '</td>' +
+                        '<td class="text-center font-weight-bold' + goldCls + '">' + ev.gold + '</td>' +
+                        '<td class="text-center font-weight-bold' + silverCls + '">' + ev.silver + '</td>' +
+                        '<td class="text-center font-weight-bold' + bronzeCls + '">' + ev.bronze + '</td>' +
+                        '<td class="text-center font-weight-bold">' + total + '</td>' +
+                        '</tr>';
+                });
+                return html || '<tr class="no-results-row"><td colspan="7" class="text-center py-4 text-muted">No events with posted results yet.</td></tr>';
+            }
+
             function refreshResults() {
                 if (ACTIVE_MUNICIPALITY) {
                     return; // do not override the focused team view with live refresh rows
@@ -1928,6 +2193,7 @@
 
                     if (resp.winners) {
                         $('#winners-body').html(renderWinnersRows(resp.winners));
+                        $('#eventsRecordedBody').html(renderEventSummaries(resp.winners));
                     }
                 }).fail(function() {
                     // fail silently for now
@@ -1941,6 +2207,13 @@
                     if (e.type === 'click' || e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         openMunicipalityModal();
+                    }
+                });
+
+                $('#eventsRecordedCard').on('click keypress', function(e) {
+                    if (e.type === 'click' || e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleEventsPanel(true);
                     }
                 });
 
@@ -1959,6 +2232,11 @@
                 $('#hideMedalBreakdown').on('click', function(e) {
                     e.preventDefault();
                     toggleMedalPanel(false);
+                });
+
+                $('#hideEventsPanel').on('click', function(e) {
+                    e.preventDefault();
+                    toggleEventsPanel(false);
                 });
 
                 refreshResults();
