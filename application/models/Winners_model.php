@@ -34,7 +34,10 @@ class Winners_model extends CI_Model
             first_name,
             middle_name,
             last_name,
-            CONCAT(last_name, ', ', first_name, ' ', COALESCE(middle_name, '')) AS full_name,
+            CASE
+                WHEN TRIM(IFNULL(last_name, '')) = '' THEN TRIM(CONCAT_WS(' ', first_name, middle_name))
+                ELSE TRIM(CONCAT_WS(' ', CONCAT(last_name, ','), first_name, middle_name))
+            END AS full_name,
             medal,
             municipality,
             school,
@@ -81,7 +84,10 @@ class Winners_model extends CI_Model
             w.event_name,
             w.event_group,
             w.category,
-            CONCAT(w.last_name, ', ', w.first_name, ' ', COALESCE(w.middle_name, '')) AS full_name,
+            CASE
+                WHEN TRIM(IFNULL(w.last_name, '')) = '' THEN TRIM(CONCAT_WS(' ', w.first_name, w.middle_name))
+                ELSE TRIM(CONCAT_WS(' ', CONCAT(w.last_name, ','), w.first_name, w.middle_name))
+            END AS full_name,
             w.medal,
             w.municipality,
             w.school,
@@ -127,7 +133,10 @@ class Winners_model extends CI_Model
             first_name,
             middle_name,
             last_name,
-            CONCAT(last_name, ', ', first_name, ' ', COALESCE(middle_name, '')) AS full_name,
+            CASE
+                WHEN TRIM(IFNULL(last_name, '')) = '' THEN TRIM(CONCAT_WS(' ', first_name, middle_name))
+                ELSE TRIM(CONCAT_WS(' ', CONCAT(last_name, ','), first_name, middle_name))
+            END AS full_name,
             medal,
             municipality,
             school,

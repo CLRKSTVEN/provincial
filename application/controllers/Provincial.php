@@ -717,12 +717,14 @@ class Provincial extends CI_Controller
             $first = isset($row['first_name']) ? trim($row['first_name']) : '';
             $middle = isset($row['middle_name']) ? trim($row['middle_name']) : '';
             $last = isset($row['last_name']) ? trim($row['last_name']) : '';
+            $entryType = strtolower(isset($row['entry_type']) ? trim($row['entry_type']) : 'individual');
+            $teamNames = isset($row['team_names']) ? trim($row['team_names']) : '';
             $municipality = isset($row['municipality']) ? trim($row['municipality']) : '';
             $school = isset($row['school']) ? trim($row['school']) : '';
             $coach = isset($row['coach']) ? trim($row['coach']) : '';
             $medal = isset($row['medal']) ? trim($row['medal']) : '';
 
-            $allEmpty = ($first === '' && $middle === '' && $last === '' && $municipality === '');
+            $allEmpty = ($first === '' && $middle === '' && $last === '' && $municipality === '' && $teamNames === '');
             if ($allEmpty) {
                 continue;
             }
@@ -738,13 +740,28 @@ class Provincial extends CI_Controller
                 continue;
             }
 
-            if ($first === '' || $last === '' || $municipality === '') {
-                if ($strictMissing) {
-                    $errors[] = $label . ' is missing first name, last name, or municipality.';
-                } else {
-                    $skippedMissing++;
+            if ($entryType === 'team') {
+                if ($teamNames === '' || $municipality === '') {
+                    if ($strictMissing) {
+                        $errors[] = $label . ' is missing team names or municipality.';
+                    } else {
+                        $skippedMissing++;
+                    }
+                    continue;
                 }
-                continue;
+                // Map team entry into first_name for storage; leave middle/last blank
+                $first = $teamNames;
+                $middle = '';
+                $last = '';
+            } else {
+                if ($first === '' || $last === '' || $municipality === '') {
+                    if ($strictMissing) {
+                        $errors[] = $label . ' is missing first name, last name, or municipality.';
+                    } else {
+                        $skippedMissing++;
+                    }
+                    continue;
+                }
             }
 
             $validRows[] = array(
@@ -755,6 +772,8 @@ class Provincial extends CI_Controller
                 'municipality' => $municipality,
                 'school'       => $school,
                 'coach'        => $coach,
+                'entry_type'   => ($entryType === 'team') ? 'team' : 'individual',
+                'team_names'   => $teamNames,
             );
         }
 

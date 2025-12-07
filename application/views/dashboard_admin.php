@@ -133,8 +133,8 @@
         border: 1px dashed #e5e7eb;
         background: #fff;
         border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 12px;
+        padding: 10px;
+        margin-bottom: 10px;
     }
 
     .medal-section .medal-header {
@@ -151,11 +151,62 @@
     }
 
     .medal-row .card-body {
-        padding: 12px;
+        padding: 10px;
     }
 
     .medal-row .form-group {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
+    }
+
+    /* Winner modal spacing tightener */
+    #winnerModal .modal-body .form-group {
+        margin-bottom: 0.55rem;
+    }
+    #winnerModal .medal-header {
+        margin-bottom: 6px;
+    }
+    #winnerModal .alert-info {
+        margin-bottom: 10px;
+        padding: 8px 10px;
+    }
+
+    /* Entry type segmented toggle */
+    .entry-type-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .entry-type-btn {
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        line-height: 1.2;
+        transition: all 0.15s ease;
+    }
+
+    .entry-type-btn.active {
+        background: #eef2ff;
+        border-color: #6366f1;
+        color: #312e81;
+        box-shadow: 0 1px 2px rgba(99, 102, 241, 0.18);
+    }
+
+    .entry-type-btn:hover {
+        background: #f3f4f6;
+    }
+
+    .entry-type-toggle .entry-type-btn.active {
+        background: #0ea5e9;
+        color: #fff;
+        border-color: #0ea5e9;
+    }
+
+    .entry-type-toggle .entry-type-btn {
+        min-width: 110px;
     }
 </style>
 
@@ -325,7 +376,9 @@
                                                                         data-medal="<?= htmlspecialchars($row->medal, ENT_QUOTES, 'UTF-8'); ?>"
                                                                         data-municipality="<?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?>"
                                                                         data-school="<?= htmlspecialchars($row->school ?? '', ENT_QUOTES, 'UTF-8'); ?>"
-                                                                        data-coach="<?= htmlspecialchars($row->coach ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                                                                        data-coach="<?= htmlspecialchars($row->coach ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        data-entry-type="<?= htmlspecialchars($row->entry_type ?? 'Individual', ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        data-team-names="<?= htmlspecialchars($row->team_names ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                                                                         <i class="mdi mdi-pencil"></i>
                                                                     </button>
                                                                     <form action="<?= site_url('provincial/delete_winner/' . (int) $row->id); ?>"
@@ -866,6 +919,23 @@
                 });
             }
 
+            function setRowMode($row, mode) {
+                mode = (mode || 'Individual').toString().toLowerCase();
+                var isTeam = mode === 'team';
+                $row.find('.entry-type-value').val(isTeam ? 'Team' : 'Individual');
+                $row.find('.entry-type-btn').removeClass('active');
+                $row.find('.entry-type-btn[data-type="' + (isTeam ? 'Team' : 'Individual') + '"]').addClass('active');
+                $row.find('.individual-fields').toggleClass('d-none', isTeam);
+                $row.find('.team-fields').toggleClass('d-none', !isTeam);
+                if (isTeam) {
+                    // Clear individual name fields when switching to team mode
+                    $row.find('.individual-fields input').val('');
+                } else {
+                    // Clear team textarea when switching back
+                    $row.find('textarea[name$="[team_names]"]').val('');
+                }
+            }
+
             function addWinnerRow(medal, data) {
                 data = data || {};
                 if (!medalContainers[medal]) {
@@ -896,19 +966,33 @@
                     '</div>' +
                     '<button type="button" class="btn btn-link text-danger p-0 btn-remove-row">Remove</button>' +
                     '</div>' +
-                    '<div class="form-row">' +
-                    '<div class="form-group col-md-4">' +
-                    '<label class="small text-muted mb-1">First name</label>' +
-                    '<input type="text" name="winners[' + index + '][first_name]" class="form-control form-control-sm">' +
+                    '<div class="form-row align-items-end">' +
+                        '<div class="form-group col-md-4">' +
+                            '<label class="small text-muted mb-1">Entry type</label>' +
+                            '<div class="entry-type-toggle">' +
+                                '<input type="hidden" class="entry-type-value" name="winners[' + index + '][entry_type]" value="Individual">' +
+                                '<button type="button" class="entry-type-btn" data-type="Individual">Individual</button>' +
+                                '<button type="button" class="entry-type-btn" data-type="Team">Team</button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="form-group col-md-8 team-fields d-none">' +
+                            '<label class="small text-muted mb-1">Team members / names</label>' +
+                            '<textarea name="winners[' + index + '][team_names]" class="form-control form-control-sm" rows="2" placeholder="Enter one or multiple names for this team"></textarea>' +
+                        '</div>' +
                     '</div>' +
-                    '<div class="form-group col-md-4">' +
-                    '<label class="small text-muted mb-1">Middle name</label>' +
-                    '<input type="text" name="winners[' + index + '][middle_name]" class="form-control form-control-sm">' +
-                    '</div>' +
-                    '<div class="form-group col-md-4">' +
-                    '<label class="small text-muted mb-1">Last name</label>' +
-                    '<input type="text" name="winners[' + index + '][last_name]" class="form-control form-control-sm">' +
-                    '</div>' +
+                    '<div class="form-row individual-fields">' +
+                        '<div class="form-group col-md-4">' +
+                        '<label class="small text-muted mb-1">First name</label>' +
+                        '<input type="text" name="winners[' + index + '][first_name]" class="form-control form-control-sm">' +
+                        '</div>' +
+                        '<div class="form-group col-md-4">' +
+                        '<label class="small text-muted mb-1">Middle name</label>' +
+                        '<input type="text" name="winners[' + index + '][middle_name]" class="form-control form-control-sm">' +
+                        '</div>' +
+                        '<div class="form-group col-md-4">' +
+                        '<label class="small text-muted mb-1">Last name</label>' +
+                        '<input type="text" name="winners[' + index + '][last_name]" class="form-control form-control-sm">' +
+                        '</div>' +
                     '</div>' +
                     '<div class="form-row">' +
                     '<div class="form-group col-md-4">' +
@@ -934,11 +1018,19 @@
                 $row.find('input[name="winners[' + index + '][first_name]"]').val(data.first_name || '');
                 $row.find('input[name="winners[' + index + '][middle_name]"]').val(data.middle_name || '');
                 $row.find('input[name="winners[' + index + '][last_name]"]').val(data.last_name || '');
+                var combinedNames = $.trim([data.first_name, data.middle_name, data.last_name].filter(Boolean).join(' '));
+                $row.find('textarea[name="winners[' + index + '][team_names]"]').val(data.team_names || combinedNames || '');
                 $row.find('select[name="winners[' + index + '][municipality]"]').val(data.municipality || '');
                 $row.find('input[name="winners[' + index + '][school]"]').val(data.school || '');
                 $row.find('input[name="winners[' + index + '][coach]"]').val(data.coach || '');
 
                 medalContainers[medal].append($row);
+                var mode = (data.entry_type || 'Individual');
+                setRowMode($row, mode);
+
+                $row.find('.entry-type-btn').on('click', function() {
+                    setRowMode($row, $(this).data('type'));
+                });
             }
 
             function seedDefaultRows() {
@@ -1020,7 +1112,9 @@
                     medal: $btn.data('medal'),
                     municipality: $btn.data('municipality'),
                     school: $btn.data('school'),
-                    coach: $btn.data('coach')
+                    coach: $btn.data('coach'),
+                    entry_type: $btn.data('entry-type') || 'Individual',
+                    team_names: $btn.data('team-names') || ''
                 };
 
                 setEditMode(data);
