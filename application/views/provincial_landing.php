@@ -461,6 +461,24 @@
         }
     }
 
+    /* Live tally card palette pulled from meet banner */
+    #liveTallyWrapper {
+        background: linear-gradient(135deg, #f7e07b 0%, #f2c94c 35%, #e9b434 65%, #d59d1a 100%);
+        border-color: rgba(213, 157, 26, 0.35);
+    }
+
+    #liveTallyWrapper .winners-toolbar {
+        background: rgba(255, 255, 255, 0.24);
+        backdrop-filter: blur(4px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    }
+
+    #liveTallyWrapper .winners-heading,
+    #liveTallyWrapper .winners-subtext {
+        color: #3b2a0a;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+
     .winners-toolbar {
         display: flex;
         align-items: center;
