@@ -208,6 +208,29 @@
     .entry-type-toggle .entry-type-btn {
         min-width: 110px;
     }
+
+    /* Mobile-friendly table tweaks */
+    @media (max-width: 640px) {
+        .table td,
+        .table th {
+            padding: 0.45rem 0.5rem;
+        }
+        /* Hide less critical columns on mobile */
+        .recent-winners-table th:nth-child(2),
+        .recent-winners-table td:nth-child(2),
+        .recent-winners-table th:nth-child(3),
+        .recent-winners-table td:nth-child(3),
+        .recent-winners-table th:nth-child(7),
+        .recent-winners-table td:nth-child(7),
+        .recent-winners-table th:nth-child(8),
+        .recent-winners-table td:nth-child(8) {
+            display: none;
+        }
+        #eventsTable th:nth-child(3),
+        #eventsTable td:nth-child(3) {
+            display: none;
+        }
+    }
 </style>
 
 <body>

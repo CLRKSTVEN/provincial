@@ -984,6 +984,52 @@
             justify-content: center;
         }
 
+        /* Tighter live tally on phones */
+        #liveTallyWrapper .winners-table th,
+        #liveTallyWrapper .winners-table td {
+            padding: 4px 4px;
+            font-size: 0.82rem;
+        }
+        #liveTallyWrapper .winners-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+        #liveTallyWrapper .winners-table th:first-child,
+        #liveTallyWrapper .winners-table td:first-child {
+            width: 38%;
+        }
+        #liveTallyWrapper .winners-table th:nth-child(n+2),
+        #liveTallyWrapper .winners-table td:nth-child(n+2) {
+            width: 15.5%;
+        }
+        .team-logo {
+            width: 40px;
+            height: 40px;
+        }
+
+        /* Fit live tally without scrolling */
+        #liveTallyWrapper .winners-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+        #liveTallyWrapper .winners-table th,
+        #liveTallyWrapper .winners-table td {
+            padding: 6px 5px;
+            font-size: 0.82rem;
+        }
+        #liveTallyWrapper .winners-table th:first-child,
+        #liveTallyWrapper .winners-table td:first-child {
+            width: 40%;
+        }
+        #liveTallyWrapper .winners-table th:nth-child(n+2),
+        #liveTallyWrapper .winners-table td:nth-child(n+2) {
+            width: 15%;
+        }
+        #liveTallyWrapper .winners-table th {
+            letter-spacing: 0.04em;
+            word-spacing: 0.25em;
+        }
+
         .chip-medal {
             min-width: 78px;
             padding-inline: 16px;
