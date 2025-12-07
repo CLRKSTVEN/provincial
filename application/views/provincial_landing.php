@@ -621,6 +621,25 @@
         text-decoration: none;
     }
 
+    /* Medal filter chips with matching fills */
+    .filter-chip.medal-filter[data-medal="Gold"] {
+        background: linear-gradient(180deg, rgba(255, 249, 196, 0.95), rgba(255, 236, 158, 0.8));
+        border-color: rgba(255, 193, 7, 0.5);
+        color: var(--gold);
+    }
+
+    .filter-chip.medal-filter[data-medal="Silver"] {
+        background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(229, 231, 235, 0.82));
+        border-color: rgba(160, 174, 192, 0.5);
+        color: var(--silver);
+    }
+
+    .filter-chip.medal-filter[data-medal="Bronze"] {
+        background: linear-gradient(180deg, rgba(255, 228, 203, 0.92), rgba(252, 196, 142, 0.78));
+        border-color: rgba(226, 137, 44, 0.5);
+        color: var(--bronze);
+    }
+
     .medal-filter-link[data-medal="Gold"],
     .medal-filter[data-medal="Gold"] {
         color: var(--gold);
@@ -658,17 +677,31 @@
 
     .medal-head-gold,
     .medal-head-silver,
-    .medal-head-bronze {
-        color: #fff;
-        background: linear-gradient(135deg, rgba(255, 193, 7, 0.95), rgba(235, 170, 0, 0.92));
+    .medal-head-bronze,
+    .winners-table thead th.col-gold,
+    .winners-table thead th.col-silver,
+    .winners-table thead th.col-bronze {
+        font-weight: 800;
+        border-bottom: 1px solid #e5e7eb;
     }
 
-    .medal-head-silver {
-        background: linear-gradient(135deg, rgba(226, 232, 240, 0.98), rgba(160, 174, 192, 0.9));
+    /* Header colors match the data cell fills */
+    .medal-head-gold,
+    .winners-table thead th.col-gold {
+        background: linear-gradient(180deg, rgba(255, 249, 196, 0.98), rgba(255, 236, 158, 0.86));
+        color: var(--gold);
     }
 
-    .medal-head-bronze {
-        background: linear-gradient(135deg, rgba(255, 205, 178, 0.95), rgba(226, 137, 44, 0.92));
+    .medal-head-silver,
+    .winners-table thead th.col-silver {
+        background: linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(229, 231, 235, 0.88));
+        color: var(--silver);
+    }
+
+    .medal-head-bronze,
+    .winners-table thead th.col-bronze {
+        background: linear-gradient(180deg, rgba(255, 228, 203, 0.95), rgba(252, 196, 142, 0.82));
+        color: var(--bronze);
     }
 
     .medal-icon {
@@ -1500,9 +1533,9 @@
                                         <thead>
                                             <tr>
                                                 <th>Team</th>
-                                                <th class="text-center medal-head-gold"><span class="medal-icon">🥇</span>Gold</th>
-                                                <th class="text-center medal-head-silver"><span class="medal-icon">🥈</span>Silver</th>
-                                                <th class="text-center medal-head-bronze"><span class="medal-icon">🥉</span>Bronze</th>
+                                                <th class="text-center col-gold"><span class="medal-icon">🥇</span>Gold</th>
+                                                <th class="text-center col-silver"><span class="medal-icon">🥈</span>Silver</th>
+                                                <th class="text-center col-bronze"><span class="medal-icon">🥉</span>Bronze</th>
                                                 <th class="text-center">Total</th>
                                             </tr>
                                         </thead>
@@ -1582,9 +1615,9 @@
                                                 <th>Event</th>
                                                 <th class="text-center">Group</th>
                                                 <th class="text-center">Category</th>
-                                                <th class="text-center medal-head-gold"><span class="medal-icon">🥇</span>Gold</th>
-                                                <th class="text-center medal-head-silver"><span class="medal-icon">🥈</span>Silver</th>
-                                                <th class="text-center medal-head-bronze"><span class="medal-icon">🥉</span>Bronze</th>
+                                                <th class="text-center col-gold"><span class="medal-icon">🥇</span>Gold</th>
+                                                <th class="text-center col-silver"><span class="medal-icon">🥈</span>Silver</th>
+                                                <th class="text-center col-bronze"><span class="medal-icon">🥉</span>Bronze</th>
                                             </tr>
                                         </thead>
                                         <tbody id="eventsRecordedBody">
@@ -1872,13 +1905,13 @@
                             </div>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-sm table-hover">
+                            <table class="table table-sm table-hover winners-table">
                                 <thead>
                                     <tr>
                                         <th>Team</th>
-                                        <th class="text-center medal-head-gold"><span class="medal-icon">🥇</span>Gold</th>
-                                        <th class="text-center medal-head-silver"><span class="medal-icon">🥈</span>Silver</th>
-                                        <th class="text-center medal-head-bronze"><span class="medal-icon">🥉</span>Bronze</th>
+        <th class="text-center col-gold"><span class="medal-icon">🥇</span>Gold</th>
+        <th class="text-center col-silver"><span class="medal-icon">🥈</span>Silver</th>
+        <th class="text-center col-bronze"><span class="medal-icon">🥉</span>Bronze</th>
                                         <th class="text-center">Total</th>
                                         <th class="text-right">Action</th>
                                     </tr>
@@ -1893,6 +1926,11 @@
                                         $hasData = $stats && ((int) $stats->total_medals > 0 || (int) $stats->gold > 0 || (int) $stats->silver > 0 || (int) $stats->bronze > 0);
                                         $filterUrl = $baseUrl . '?municipality=' . urlencode($mName) . $groupQuery;
                                         ?>
+                                        <?php
+                                        $goldCls = ($hasData && (int)$stats->gold > 0) ? ' col-gold' : '';
+                                        $silverCls = ($hasData && (int)$stats->silver > 0) ? ' col-silver' : '';
+                                        $bronzeCls = ($hasData && (int)$stats->bronze > 0) ? ' col-bronze' : '';
+                                        ?>
                                         <tr>
                                             <td class="align-middle">
                                                 <div class="d-flex align-items-center" style="gap:10px;">
@@ -1902,9 +1940,9 @@
                                                     <span><?= htmlspecialchars($mName, ENT_QUOTES, 'UTF-8'); ?></span>
                                                 </div>
                                             </td>
-                                            <td class="text-center"><strong><?= $hasData ? (int) $stats->gold : '—'; ?></strong></td>
-                                            <td class="text-center"><strong><?= $hasData ? (int) $stats->silver : '—'; ?></strong></td>
-                                            <td class="text-center"><strong><?= $hasData ? (int) $stats->bronze : '—'; ?></strong></td>
+                                            <td class="text-center font-weight-bold<?= $goldCls; ?>"><?= $hasData ? (int) $stats->gold : '—'; ?></td>
+                                            <td class="text-center font-weight-bold<?= $silverCls; ?>"><?= $hasData ? (int) $stats->silver : '—'; ?></td>
+                                            <td class="text-center font-weight-bold<?= $bronzeCls; ?>"><?= $hasData ? (int) $stats->bronze : '—'; ?></td>
                                             <td class="text-center"><?= $hasData ? (int) $stats->total_medals : '—'; ?></td>
                                             <td class="text-right">
                                                 <?php if ($hasData): ?>
@@ -1949,9 +1987,9 @@
                                             <th>Event</th>
                                             <th class="text-center">Group</th>
                                             <th class="text-center">Category</th>
-                                            <th class="text-center medal-head-gold"><span class="medal-icon">🥇</span>Gold</th>
-                                            <th class="text-center medal-head-silver"><span class="medal-icon">🥈</span>Silver</th>
-                                            <th class="text-center medal-head-bronze"><span class="medal-icon">🥉</span>Bronze</th>
+                                            <th class="text-center col-gold"><span class="medal-icon">🥇</span>Gold</th>
+                                            <th class="text-center col-silver"><span class="medal-icon">🥈</span>Silver</th>
+                                            <th class="text-center col-bronze"><span class="medal-icon">🥉</span>Bronze</th>
                                         </tr>
                                     </thead>
                                     <tbody>
