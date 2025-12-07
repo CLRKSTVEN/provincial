@@ -479,6 +479,12 @@
         text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
     }
 
+    .medal-icon {
+        font-size: 1.25em;
+        margin-right: 6px;
+        vertical-align: middle;
+    }
+
     .winners-toolbar {
         display: flex;
         align-items: center;
@@ -1427,9 +1433,9 @@
                                         <thead>
                                             <tr>
                                                 <th>Team</th>
-                                                <th class="text-center">Gold</th>
-                                                <th class="text-center">Silver</th>
-                                                <th class="text-center">Bronze</th>
+                                                <th class="text-center"><span class="medal-icon">🥇</span>Gold</th>
+                                                <th class="text-center"><span class="medal-icon">🥈</span>Silver</th>
+                                                <th class="text-center"><span class="medal-icon">🥉</span>Bronze</th>
                                                 <th class="text-center">Total</th>
                                             </tr>
                                         </thead>
@@ -1509,9 +1515,9 @@
                                                 <th>Event</th>
                                                 <th class="text-center">Group</th>
                                                 <th class="text-center">Category</th>
-                                                <th class="text-center">Gold</th>
-                                                <th class="text-center">Silver</th>
-                                                <th class="text-center">Bronze</th>
+                                                <th class="text-center"><span class="medal-icon">🥇</span>Gold</th>
+                                                <th class="text-center"><span class="medal-icon">🥈</span>Silver</th>
+                                                <th class="text-center"><span class="medal-icon">🥉</span>Bronze</th>
                                             </tr>
                                         </thead>
                                         <tbody id="eventsRecordedBody">
@@ -1876,9 +1882,9 @@
                                             <th>Event</th>
                                             <th class="text-center">Group</th>
                                             <th class="text-center">Category</th>
-                                            <th class="text-center">Gold</th>
-                                            <th class="text-center">Silver</th>
-                                            <th class="text-center">Bronze</th>
+                                            <th class="text-center"><span class="medal-icon">🥇</span>Gold</th>
+                                            <th class="text-center"><span class="medal-icon">🥈</span>Silver</th>
+                                            <th class="text-center"><span class="medal-icon">🥉</span>Bronze</th>
                                         </tr>
                                     </thead>
                                     <tbody>
