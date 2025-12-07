@@ -231,6 +231,50 @@
         transition: all 0.18s ease;
     }
 
+    /* Banner hero */
+    .banner-hero {
+        position: relative;
+        padding: 0;
+        border-bottom: 0;
+        margin-bottom: 18px;
+    }
+
+    .banner-image {
+        width: 100%;
+        height: 190px;
+        min-height: 190px;
+        border-radius: 18px;
+        box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+
+    .banner-overlay {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 8px 10px;
+        background: rgba(15, 23, 42, 0.24);
+        border-radius: 12px;
+        backdrop-filter: blur(6px);
+    }
+
+    .group-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+
     .group-pills .btn+.btn {
         border-left: 1px solid #e5e7eb;
     }
@@ -979,6 +1023,16 @@
             order: 1;
         }
 
+        .banner-overlay {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .group-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
         .login-btn {
             width: 100%;
             justify-content: center;
@@ -990,21 +1044,30 @@
             padding: 4px 4px;
             font-size: 0.82rem;
         }
+
         #liveTallyWrapper .winners-table {
             table-layout: fixed;
             width: 100%;
         }
+
         #liveTallyWrapper .winners-table th:first-child,
         #liveTallyWrapper .winners-table td:first-child {
             width: 38%;
         }
+
         #liveTallyWrapper .winners-table th:nth-child(n+2),
         #liveTallyWrapper .winners-table td:nth-child(n+2) {
             width: 15.5%;
         }
+
         .team-logo {
             width: 40px;
             height: 40px;
+        }
+
+        .banner-image {
+            height: 160px;
+            min-height: 160px;
         }
 
         /* Fit live tally without scrolling */
@@ -1012,19 +1075,23 @@
             table-layout: fixed;
             width: 100%;
         }
+
         #liveTallyWrapper .winners-table th,
         #liveTallyWrapper .winners-table td {
             padding: 6px 5px;
             font-size: 0.82rem;
         }
+
         #liveTallyWrapper .winners-table th:first-child,
         #liveTallyWrapper .winners-table td:first-child {
             width: 40%;
         }
+
         #liveTallyWrapper .winners-table th:nth-child(n+2),
         #liveTallyWrapper .winners-table td:nth-child(n+2) {
             width: 15%;
         }
+
         #liveTallyWrapper .winners-table th {
             letter-spacing: 0.04em;
             word-spacing: 0.25em;
@@ -1076,63 +1143,52 @@
                 <div class="col-12 landing-card">
                     <div class="landing-card-inner">
 
-                        <!-- Header -->
-                        <div class="landing-header">
-                            <div class="landing-title">
-                                <?php
-                                $meet_title = isset($meet->meet_title) ? $meet->meet_title : 'Provincial Meet';
-                                $meet_year  = isset($meet->meet_year)  ? $meet->meet_year  : '';
-                                $subtitle   = isset($meet->subtitle)
-                                    ? $meet->subtitle
-                                    : 'Official summary of results based on reports from event committees.';
-                                $activeMunicipalityHeader = isset($active_municipality) ? trim((string) $active_municipality) : '';
-                                $headerTitle = $activeMunicipalityHeader !== ''
-                                    ? $activeMunicipalityHeader
-                                    : 'Official Results Board';
-                                $activeMunicipalityFilter = $activeMunicipalityHeader;
-                                $group = isset($active_group) ? $active_group : 'ALL';
-                                $baseLandingUrl = site_url('provincial');
-                                $makeGroupUrl = function ($targetGroup) use ($activeMunicipalityFilter, $baseLandingUrl) {
-                                    $params = array();
-                                    if ($activeMunicipalityFilter !== '') {
-                                        $params[] = 'municipality=' . urlencode($activeMunicipalityFilter);
-                                    }
-                                    if ($targetGroup === 'Elementary' || $targetGroup === 'Secondary') {
-                                        $params[] = 'group=' . urlencode($targetGroup);
-                                    }
-                                    $query = empty($params) ? '' : '?' . implode('&', $params);
-                                    return $baseLandingUrl . $query;
-                                };
-                                $isLoggedIn = isset($this) && isset($this->session) ? (bool)$this->session->userdata('logged_in') : false;
-                                $loginUrl   = $isLoggedIn ? site_url('provincial/admin') : site_url('login');
-                                $loginText  = $isLoggedIn ? 'Admin Dashboard' : 'Login';
-                                ?>
-                                <h4><?= htmlspecialchars($meet_title . ' ' . $meet_year, ENT_QUOTES, 'UTF-8'); ?></h4>
-                                <h2><?= htmlspecialchars($headerTitle, ENT_QUOTES, 'UTF-8'); ?></h2>
-                                <small>
-                                    <?= htmlspecialchars($subtitle, ENT_QUOTES, 'UTF-8'); ?>
-                                </small>
-                            </div>
+                        <!-- Header Banner -->
+                        <div class="landing-header banner-hero">
+                            <?php
+                            $meet_title = isset($meet->meet_title) ? $meet->meet_title : 'Provincial Meet';
+                            $meet_year  = isset($meet->meet_year)  ? $meet->meet_year  : '';
+                            $activeMunicipalityHeader = isset($active_municipality) ? trim((string) $active_municipality) : '';
+                            $activeMunicipalityFilter = $activeMunicipalityHeader;
+                            $group = isset($active_group) ? $active_group : 'ALL';
+                            $baseLandingUrl = site_url('provincial');
+                            $makeGroupUrl = function ($targetGroup) use ($activeMunicipalityFilter, $baseLandingUrl) {
+                                $params = array();
+                                if ($activeMunicipalityFilter !== '') {
+                                    $params[] = 'municipality=' . urlencode($activeMunicipalityFilter);
+                                }
+                                if ($targetGroup === 'Elementary' || $targetGroup === 'Secondary') {
+                                    $params[] = 'group=' . urlencode($targetGroup);
+                                }
+                                $query = empty($params) ? '' : '?' . implode('&', $params);
+                                return $baseLandingUrl . $query;
+                            };
+                            $isLoggedIn = isset($this) && isset($this->session) ? (bool)$this->session->userdata('logged_in') : false;
+                            $loginUrl   = $isLoggedIn ? site_url('provincial/admin') : site_url('login');
+                            $loginText  = $isLoggedIn ? 'Admin Dashboard' : 'Login';
+                            ?>
+                            <img src="<?= base_url('upload/banners/doit-letterhead.png'); ?>" alt="<?= htmlspecialchars($meet_title . ' banner', ENT_QUOTES, 'UTF-8'); ?>" class="banner-image">
+                        </div>
 
-                            <div class="landing-actions">
-                                <div class="group-pills">
-                                    <a href="<?= $makeGroupUrl('ALL'); ?>"
-                                        class="btn btn-sm <?= $group === 'ALL' ? 'btn-primary' : 'btn-outline-primary'; ?>">
-                                        Overall
-                                    </a>
-                                    <a href="<?= $makeGroupUrl('Elementary'); ?>"
-                                        class="btn btn-sm <?= $group === 'Elementary' ? 'btn-primary' : 'btn-outline-primary'; ?>">
-                                        Elementary
-                                    </a>
-                                    <a href="<?= $makeGroupUrl('Secondary'); ?>"
-                                        class="btn btn-sm <?= $group === 'Secondary' ? 'btn-primary' : 'btn-outline-primary'; ?>">
-                                        Secondary
-                                    </a>
-                                </div>
-                                <a href="<?= $loginUrl; ?>" class="login-btn" title="Admin">
-                                    <?= $loginText; ?>
+                        <!-- Group/login controls -->
+                        <div class="group-bar">
+                            <div class="group-pills">
+                                <a href="<?= $makeGroupUrl('ALL'); ?>"
+                                    class="btn btn-sm <?= $group === 'ALL' ? 'btn-primary' : 'btn-outline-primary'; ?>">
+                                    Overall
+                                </a>
+                                <a href="<?= $makeGroupUrl('Elementary'); ?>"
+                                    class="btn btn-sm <?= $group === 'Elementary' ? 'btn-primary' : 'btn-outline-primary'; ?>">
+                                    Elementary
+                                </a>
+                                <a href="<?= $makeGroupUrl('Secondary'); ?>"
+                                    class="btn btn-sm <?= $group === 'Secondary' ? 'btn-primary' : 'btn-outline-primary'; ?>">
+                                    Secondary
                                 </a>
                             </div>
+                            <a href="<?= $loginUrl; ?>" class="login-btn" title="Admin">
+                                <?= $loginText; ?>
+                            </a>
                         </div>
 
                         <!-- Summary row -->
@@ -1453,18 +1509,18 @@
                                                         </td>
                                                         <td class="align-middle text-center"><?= htmlspecialchars($w->event_group ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
                                                         <td class="align-middle text-center"><?= htmlspecialchars($w->category ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
-                                                    <td class="align-middle"><?= htmlspecialchars($fullName, ENT_QUOTES, 'UTF-8'); ?></td>
-                                                    <td class="align-middle text-center">
-                                                        <span class="chip-medal <?= $chipClass; ?>"><?= htmlspecialchars($medal, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                        <td class="align-middle"><?= htmlspecialchars($fullName, ENT_QUOTES, 'UTF-8'); ?></td>
+                                                        <td class="align-middle text-center">
+                                                            <span class="chip-medal <?= $chipClass; ?>"><?= htmlspecialchars($medal, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <tr class="no-results-row">
+                                                    <td colspan="5" class="text-center py-5 text-muted">
+                                                        No encoded events for this team yet.
                                                     </td>
                                                 </tr>
-                                            <?php endforeach; ?>
-                                        <?php else: ?>
-                                            <tr class="no-results-row">
-                                                <td colspan="5" class="text-center py-5 text-muted">
-                                                    No encoded events for this team yet.
-                                                </td>
-                                            </tr>
                                             <?php endif; ?>
                                         </tbody>
                                     </table>
