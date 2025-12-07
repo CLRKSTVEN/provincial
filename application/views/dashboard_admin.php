@@ -783,6 +783,15 @@
             eventsMeta.sort(function(a, b) {
                 return (a.name || '').localeCompare(b.name || '');
             });
+            var groupOptions = <?= json_encode(array_map(function ($g) {
+                return array(
+                    'id' => (int) $g->group_id,
+                    'name' => $g->group_name,
+                );
+            }, $event_groups_list)); ?>;
+            groupOptions.sort(function(a, b) {
+                return (a.name || '').localeCompare(b.name || '');
+            });
             var medalContainers = {
                 Gold: $('#goldRows'),
                 Silver: $('#silverRows'),
@@ -815,18 +824,11 @@
                 var selected = eventsMeta.find(function (ev) { return ev.id === parseInt(eventId, 10); });
                 var nameKey = selected ? (selected.name || '').toLowerCase() : '';
 
-                // Build unique group options for matching event name
-                var groups = {};
-                eventsMeta.forEach(function (ev) {
-                    if (!nameKey || (ev.name || '').toLowerCase() === nameKey) {
-                        var gKey = (ev.group_id || '') + '|' + (ev.group_name || '');
-                        groups[gKey] = { id: ev.group_id, name: ev.group_name };
-                    }
-                });
+                // Always allow full group list (Elementary/Secondary)
                 $winnerGroupSelect.empty().append('<option value="">-- Select Group --</option>');
-                Object.values(groups).forEach(function (g) {
+                groupOptions.forEach(function (g) {
                     $winnerGroupSelect.append(
-                        $('<option>', { value: g.id || g.name, text: g.name || 'Unspecified' })
+                        $('<option>', { value: g.id, text: g.name || 'Unspecified' })
                     );
                 });
 
@@ -848,9 +850,7 @@
 
                 if (selected) {
                     if (selected.group_id) {
-                        $winnerGroupSelect.val(selected.group_id);
-                    } else if (selected.group_name) {
-                        $winnerGroupSelect.val(selected.group_name);
+                        $winnerGroupSelect.val(selected.group_id.toString());
                     }
                     if (selected.category_id) {
                         $winnerCategorySelect.val(selected.category_id);

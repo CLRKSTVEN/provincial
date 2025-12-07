@@ -1072,7 +1072,7 @@
                                 <div class="group-pills">
                                     <a href="<?= $makeGroupUrl('ALL'); ?>"
                                         class="btn btn-sm <?= $group === 'ALL' ? 'btn-primary' : 'btn-outline-primary'; ?>">
-                                        All
+                                        Overall
                                     </a>
                                     <a href="<?= $makeGroupUrl('Elementary'); ?>"
                                         class="btn btn-sm <?= $group === 'Elementary' ? 'btn-primary' : 'btn-outline-primary'; ?>">
