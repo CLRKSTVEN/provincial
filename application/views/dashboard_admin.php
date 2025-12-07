@@ -284,10 +284,13 @@
                                                     <?php foreach ($recent_winners as $row): ?>
                                                         <?php
                                                         $badgeClass = 'badge-silver';
+                                                        $medalOrder = 2;
                                                         if ($row->medal === 'Gold') {
                                                             $badgeClass = 'badge-gold';
+                                                            $medalOrder = 3;
                                                         } elseif ($row->medal === 'Bronze') {
                                                             $badgeClass = 'badge-bronze';
+                                                            $medalOrder = 1;
                                                         }
                                                         ?>
                                                         <tr>
@@ -295,7 +298,7 @@
                                                             <td><?= htmlspecialchars($row->event_group, ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td><?= htmlspecialchars($row->category ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td><?= htmlspecialchars($row->full_name, ENT_QUOTES, 'UTF-8'); ?></td>
-                                                            <td class="text-center">
+                                                            <td class="text-center" data-order="<?= $medalOrder; ?>">
                                                                 <span class="badge badge-medal <?= $badgeClass; ?>"><?= htmlspecialchars($row->medal, ENT_QUOTES, 'UTF-8'); ?></span>
                                                             </td>
                                                             <td><?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?></td>
@@ -1029,7 +1032,7 @@
                 $('#recentWinnersTable').DataTable({
                     pageLength: 25,
                     lengthChange: true,
-                    order: [],
+                    order: [[0, 'asc'], [4, 'desc']],
                     columnDefs: [
                         { targets: -1, orderable: false, searchable: false }
                     ],
