@@ -277,6 +277,7 @@
                                                         <th>Team</th>
                                                         <th>School</th>
                                                         <th>Coach</th>
+                                                        <th class="d-none">Created</th>
                                                         <th class="text-right" style="width: 140px;">Actions</th>
                                                     </tr>
                                                 </thead>
@@ -292,6 +293,8 @@
                                                             $badgeClass = 'badge-bronze';
                                                             $medalOrder = 1;
                                                         }
+                                                        $createdAt = $row->created_at ?? '';
+                                                        $createdSort = $createdAt ? strtotime($createdAt) : 0;
                                                         ?>
                                                         <tr>
                                                             <td><?= htmlspecialchars($row->event_name, ENT_QUOTES, 'UTF-8'); ?></td>
@@ -304,6 +307,7 @@
                                                             <td><?= htmlspecialchars($row->municipality, ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td><?= htmlspecialchars($row->school ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td><?= htmlspecialchars($row->coach ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                                                            <td class="d-none" data-order="<?= $createdSort; ?>"><?= htmlspecialchars($createdAt, ENT_QUOTES, 'UTF-8'); ?></td>
                                                             <td class="text-right align-middle">
                                                                 <span class="recent-winners-actions">
                                                                     <button
@@ -583,8 +587,14 @@
                         <select name="event_id" id="eventSelect" class="form-control" required>
                             <option value="">-- Select Event --</option>
                             <?php
+                            $events_list_sorted = is_array($events_list) ? $events_list : array();
+                            if (!empty($events_list_sorted)) {
+                                usort($events_list_sorted, function ($a, $b) {
+                                    return strcasecmp($a->event_name ?? '', $b->event_name ?? '');
+                                });
+                            }
                             $eventSeen = array();
-                            foreach ($events_list as $event):
+                            foreach ($events_list_sorted as $event):
                                 $eventName = trim($event->event_name);
                                 $labelKey = strtolower($eventName);
                                 if (isset($eventSeen[$labelKey])) {
@@ -770,6 +780,9 @@
                     'category_name' => $ev->category_name ?? '',
                 );
             }, $events_list)); ?>;
+            eventsMeta.sort(function(a, b) {
+                return (a.name || '').localeCompare(b.name || '');
+            });
             var medalContainers = {
                 Gold: $('#goldRows'),
                 Silver: $('#silverRows'),
@@ -1032,9 +1045,10 @@
                 $('#recentWinnersTable').DataTable({
                     pageLength: 25,
                     lengthChange: true,
-                    order: [[0, 'asc'], [4, 'desc']],
+                    order: [[8, 'desc'], [4, 'desc']],
                     columnDefs: [
-                        { targets: -1, orderable: false, searchable: false }
+                        { targets: -1, orderable: false, searchable: false },
+                        { targets: 8, visible: false }
                     ],
                     autoWidth: false
                 });
